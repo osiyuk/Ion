@@ -5,6 +5,8 @@
 #include <ctype.h>
 #include <stdio.h>
 
+#include "string_interning.h"
+
 typedef enum {
         TOKEN_INT = 128,
         TOKEN_NAME
@@ -18,6 +20,7 @@ struct Token {
                         const char *start;
                         size_t length;
                 };
+                const char *name;
         };
 };
 
@@ -45,6 +48,7 @@ void next_token()
                 while (isalnum(*stream)
                         || *stream == '_') stream++;
                 token.length = stream - token.start;
+                token.name = str_intern_slice(token.start, token.length);
                 break;
         default:
                 token.kind = *stream++;
@@ -62,7 +66,7 @@ void print_token()
                 printf("TOKEN_NAME : %.*s\n", token.length, token.start);
                 break;
         default:
-                printf(isprint(token.kind) ?
+                printf( isprint(token.kind) ?
                         "TOKEN '%c'\n" :
                         "TOKEN %d\n", token.kind);
         }
