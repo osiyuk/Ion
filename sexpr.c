@@ -66,6 +66,25 @@ void next()
 }
 
 
+void print_token()
+{
+        switch (token) {
+        case INT:       printf("INT %d\n", val); break;
+        case OP_TILDE:  puts("OP_TILDE"); break;
+        case OP_MUL:    puts("OP_MUL"); break;
+        case OP_DIV:    puts("OP_MUL"); break;
+        case OP_MOD:    puts("OP_MOD"); break;
+        case OP_LSHIFT: puts("OP_LSHIFT"); break;
+        case OP_RSHIFT: puts("OP_RSHIFT"); break;
+        case OP_AND:    puts("OP_AND"); break;
+        case OP_ADD:    puts("OP_ADD"); break;
+        case OP_SUB:    puts("OP_SUB"); break;
+        case OP_OR:     puts("OP_OR"); break;
+        case OP_XOR:    puts("OP_XOR"); break;
+        }
+}
+
+
 // recursive descent parser, based on EBNF grammar
 
 // unary = ['-' | '~'] INT
@@ -75,17 +94,14 @@ void next()
 void parse_unary()
 {
         if (token == OP_SUB || token == OP_TILDE) {
-                switch (token) {
-                case OP_SUB: puts("OP_SUB"); break;
-                case OP_TILDE: puts("OP_TILDE"); break;
-                }
+                print_token();
                 next();
         }
         
         if (token != INT)
                 fatal("expected INT token, got '%c'", *stream);
         
-        printf("INT %d\n", val);
+        print_token();
         next();
         return;
 }
@@ -96,14 +112,7 @@ void parse_factor()
         parse_unary();
         
         while (OP_MUL <= token && token <= OP_AND) {
-                switch (token) {
-                case OP_MUL: puts("OP_MUL"); break;
-                case OP_DIV: puts("OP_DIV"); break;
-                case OP_MOD: puts("OP_MOD"); break;
-                case OP_LSHIFT: puts("OP_LSHIFT"); break;
-                case OP_RSHIFT: puts("OP_RSHIFT"); break;
-                case OP_AND: puts("OP_AND"); break;
-                }
+                print_token();
                 next();
                 parse_unary();
         }
@@ -115,12 +124,7 @@ void parse_term()
         parse_factor();
         
         while (OP_ADD <= token && token <= OP_XOR) {
-                switch (token) {
-                case OP_ADD: puts("OP_ADD"); break;
-                case OP_SUB: puts("OP_SUB"); break;
-                case OP_OR: puts("OP_OR"); break;
-                case OP_XOR: puts("OP_XOR"); break;
-                }
+                print_token();
                 next();
                 parse_factor();
         }
@@ -138,7 +142,15 @@ void parse_expr(const char *str)
 
 int main(int argc, char *argv[])
 {
-        parse_expr("12*34 + -45/56 + ~25");
+        if (argc < 2) {
+                printf("usage: %s \"expr\" ...\n", argv[0]);
+                return 1;
+        }
+        
+        for (int i = 1; i < argc; i++) {
+                parse_expr(argv[i]);
+        }
+        
         return 0;
 }
 
