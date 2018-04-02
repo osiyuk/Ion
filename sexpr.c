@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "fatal.h"
 
@@ -7,17 +8,34 @@
 // composed of integer literals and operators
 
 enum {
-        INT, OP_TILDE,
-        OP_MUL, OP_DIV, OP_MOD, OP_LSHIFT, OP_RSHIFT, OP_AND,
-        OP_ADD, OP_SUB, OP_OR, OP_XOR
+        NONE,
+        INT,
+        UNARY,
+        FACTOR,
+        TERM,
+        
+        LSHIFT = 128,
+        RSHIFT,
+};
+
+
+struct token {
+        u_char type;
+        union {
+                int val;
+                char op[4];
+        };
+        struct token *lval;
+        struct token *rval;
 };
 
 const char *stream;
-int token, val;
+struct token token;
 
 
 void expect_char(char c)
 {
+        stream++;
         if (c == *stream)
                 return;
         
@@ -32,55 +50,55 @@ void next()
         
         switch (*stream) {
         case '0'...'9':
-                token = INT;
-                val = 0;
+                token.type = INT;
+                token.val = 0;
                 while (isdigit(*stream)) {
-                        val *= 10;
-                        val += (*stream++ - '0');
+                        token.val *= 10;
+                        token.val += (*stream++ - '0');
                 }
                 return;
-        case '~': token = OP_TILDE; break;
-        case '*': token = OP_MUL; break;
-        case '/': token = OP_DIV; break;
-        case '%': token = OP_MOD; break;
+        case '-': // SUB
+        case '~': // TILDE
+                token.type = UNARY;
+                goto operator;
+        case '*':
+        case '/':
+        case '%':
+        case '&':
+                token.type = FACTOR;
+                goto operator;
         case '<':
-                stream++;
                 expect_char('<');
-                token = OP_LSHIFT;
-                break;
+                token.type = FACTOR;
+                strcpy(token.op, "<<");
+                goto stream;
         case '>':
-                stream++;
                 expect_char('>');
-                token = OP_RSHIFT;
-                break;
-        case '&': token = OP_AND; break;
-        case '+': token = OP_ADD; break;
-        case '-': token = OP_SUB; break;
-        case '|': token = OP_OR; break;
-        case '^': token = OP_XOR; break;
+                token.type = FACTOR;
+                strcpy(token.op, ">>");
+                goto stream;
+        case '+':
+        case '|':
+        case '^':
+                token.type = TERM;
+                goto operator;
         
         case 0: return;
         default: fatal("expected VALID token, got '%c'", *stream);
         }
+operator:
+        token.op[0] = *stream;
+        token.op[1] = 0;
+stream:
         stream++;
 }
 
 
 void print_token()
 {
-        switch (token) {
-        case INT:       printf("INT %d\n", val); break;
-        case OP_TILDE:  puts("OP_TILDE"); break;
-        case OP_MUL:    puts("OP_MUL"); break;
-        case OP_DIV:    puts("OP_MUL"); break;
-        case OP_MOD:    puts("OP_MOD"); break;
-        case OP_LSHIFT: puts("OP_LSHIFT"); break;
-        case OP_RSHIFT: puts("OP_RSHIFT"); break;
-        case OP_AND:    puts("OP_AND"); break;
-        case OP_ADD:    puts("OP_ADD"); break;
-        case OP_SUB:    puts("OP_SUB"); break;
-        case OP_OR:     puts("OP_OR"); break;
-        case OP_XOR:    puts("OP_XOR"); break;
+        switch (token.type) {
+        case INT: printf("INT %d\n", token.val); break;
+        default: printf("OP %s\n", token.op);
         }
 }
 
@@ -93,12 +111,12 @@ void print_token()
 
 void parse_unary()
 {
-        if (token == OP_SUB || token == OP_TILDE) {
+        if (token.type == UNARY) {
                 print_token();
                 next();
         }
         
-        if (token != INT)
+        if (token.type != INT)
                 fatal("expected INT token, got '%c'", *stream);
         
         print_token();
@@ -111,7 +129,7 @@ void parse_factor()
 {
         parse_unary();
         
-        while (OP_MUL <= token && token <= OP_AND) {
+        while (token.type == FACTOR) {
                 print_token();
                 next();
                 parse_unary();
@@ -123,7 +141,7 @@ void parse_term()
 {
         parse_factor();
         
-        while (OP_ADD <= token && token <= OP_XOR) {
+        while (token.type == TERM || *token.op == '-') {
                 print_token();
                 next();
                 parse_factor();
