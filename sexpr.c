@@ -30,7 +30,7 @@ struct token {
 };
 
 const char *stream;
-struct token token;
+struct token next;
 
 
 void expect_char(char c)
@@ -43,52 +43,52 @@ void expect_char(char c)
 }
 
 
-void next()
+void consume()
 {
         while (*stream == ' ')
                 stream++;
         
         switch (*stream) {
         case '0'...'9':
-                token.type = INT;
-                token.val = 0;
+                next.type = INT;
+                next.val = 0;
                 while (isdigit(*stream)) {
-                        token.val *= 10;
-                        token.val += (*stream++ - '0');
+                        next.val *= 10;
+                        next.val += (*stream++ - '0');
                 }
                 return;
         case '-': // SUB
         case '~': // TILDE
-                token.type = UNARY;
+                next.type = UNARY;
                 goto operator;
         case '*':
         case '/':
         case '%':
         case '&':
-                token.type = FACTOR;
+                next.type = FACTOR;
                 goto operator;
         case '<':
                 expect_char('<');
-                token.type = FACTOR;
-                strcpy(token.op, "<<");
+                next.type = FACTOR;
+                strcpy(next.op, "<<");
                 goto stream;
         case '>':
                 expect_char('>');
-                token.type = FACTOR;
-                strcpy(token.op, ">>");
+                next.type = FACTOR;
+                strcpy(next.op, ">>");
                 goto stream;
         case '+':
         case '|':
         case '^':
-                token.type = TERM;
+                next.type = TERM;
                 goto operator;
         
         case 0: return;
         default: fatal("expected VALID token, got '%c'", *stream);
         }
 operator:
-        token.op[0] = *stream;
-        token.op[1] = 0;
+        next.op[0] = *stream;
+        next.op[1] = 0;
 stream:
         stream++;
 }
@@ -96,9 +96,9 @@ stream:
 
 void print_token()
 {
-        switch (token.type) {
-        case INT: printf("INT %d\n", token.val); break;
-        default: printf("OP %s\n", token.op);
+        switch (next.type) {
+        case INT: printf("INT %d\n", next.val); break;
+        default: printf("OP %s\n", next.op);
         }
 }
 
@@ -111,16 +111,16 @@ void print_token()
 
 void parse_unary()
 {
-        if (token.type == UNARY) {
+        if (next.type == UNARY) {
                 print_token();
-                next();
+                consume();
         }
         
-        if (token.type != INT)
+        if (next.type != INT)
                 fatal("expected INT token, got '%c'", *stream);
         
         print_token();
-        next();
+        consume();
         return;
 }
 
@@ -129,9 +129,9 @@ void parse_factor()
 {
         parse_unary();
         
-        while (token.type == FACTOR) {
+        while (next.type == FACTOR) {
                 print_token();
-                next();
+                consume();
                 parse_unary();
         }
 }
@@ -141,9 +141,9 @@ void parse_term()
 {
         parse_factor();
         
-        while (token.type == TERM || *token.op == '-') {
+        while (next.type == TERM || *next.op == '-') {
                 print_token();
-                next();
+                consume();
                 parse_factor();
         }
 }
@@ -153,7 +153,7 @@ void parse_expr(const char *str)
 {
         stream = str;
         printf("PARSING %s\n", stream);
-        next();
+        consume();
         parse_term();
 }
 
