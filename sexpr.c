@@ -13,9 +13,7 @@ enum {
         UNARY,
         FACTOR,
         TERM,
-        
-        LSHIFT = 128,
-        RSHIFT,
+        END
 };
 
 
@@ -83,7 +81,9 @@ void consume()
                 next.type = TERM;
                 goto operator;
         
-        case 0: return;
+        case 0:
+                next.type = END;
+                return;
         default: fatal("expected VALID token, got '%c'", *stream);
         }
 operator:
@@ -105,9 +105,19 @@ void print_token()
 
 // recursive descent parser, based on EBNF grammar
 
-// unary = ['-' | '~'] INT
+// unary = INT | ('-' | '~') INT
 // factor = unary {('*' | '/' | '%' | '<<' | '>>' | '&') unary}
 // term = factor {('+' | '-' | '|' | '^') factor}
+
+void parse_int()
+{
+        if (next.type != INT)
+                fatal("expexted INT token, got '%c'", *stream);
+        
+        print_token();
+        consume();
+}
+
 
 void parse_unary()
 {
@@ -116,12 +126,7 @@ void parse_unary()
                 consume();
         }
         
-        if (next.type != INT)
-                fatal("expected INT token, got '%c'", *stream);
-        
-        print_token();
-        consume();
-        return;
+        parse_int();
 }
 
 
