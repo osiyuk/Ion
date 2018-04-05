@@ -30,7 +30,7 @@ struct token {
 typedef struct tree_s tree_t;
 
 struct tree_s {
-        struct token tkn;
+        struct token token;
         tree_t *lval;
         tree_t *rval;
 };
@@ -65,7 +65,6 @@ void consume()
                         next.val += (*stream++ - '0');
                 }
                 return;
-        case '-': // SUB
         case '~': // TILDE
                 next.type = UNARY;
                 goto operator;
@@ -86,6 +85,7 @@ void consume()
                 strcpy(next.op, ">>");
                 goto stream;
         case '+':
+        case '-':
         case '|':
         case '^':
                 next.type = TERM;
@@ -126,61 +126,118 @@ tree_t *push(tree_t node)
 
 // recursive descent parser, based on EBNF grammar
 
-// unary = INT | ('-' | '~') INT
+// int = INT
+// unary = int | ('-' | '~') int
 // factor = unary {('*' | '/' | '%' | '<<' | '>>' | '&') unary}
 // term = factor {('+' | '-' | '|' | '^') factor}
 
-void parse_int()
+tree_t *parse_int()
 {
+        tree_t *t;
+        
         if (next.type != INT)
                 fatal("expected INT token, got '%c'", *stream);
         
-        print_token();
+        t = leaf(next);
         consume();
+        return t;
 }
 
 
-void parse_unary()
+tree_t *parse_unary()
 {
-        if (next.type == UNARY) {
-                print_token();
-                consume();
-        }
+        tree_t *t;
+        int is_unary;
         
-        parse_int();
+        is_unary = (next.type == UNARY ||
+                (next.type == TERM && *next.op == '-'));
+        
+        if (!is_unary)
+                return parse_int();
+        
+        next.type = UNARY;
+        t = leaf(next);
+        consume();
+        
+        t->rval = parse_int();
+        return t;
 }
 
 
-void parse_factor()
+tree_t *parse_factor()
 {
-        parse_unary();
+        tree_t *lval, *rval;
+        struct token op;
+        
+        lval = parse_unary();
         
         while (next.type == FACTOR) {
-                print_token();
+                op = next;
                 consume();
-                parse_unary();
+                rval = parse_unary();
+                lval = node(op, lval, rval);
         }
+        
+        return lval;
 }
 
 
-void parse_term()
+tree_t *parse_term()
 {
-        parse_factor();
+        tree_t *lval, *rval;
+        struct token op;
         
-        while (next.type == TERM || *next.op == '-') {
-                print_token();
+        lval = parse_factor();
+        
+        while (next.type == TERM) {
+                op = next;
                 consume();
-                parse_factor();
+                rval = parse_factor();
+                lval = node(op, lval, rval);
+        }
+        
+        return lval;
+}
+
+
+void print_tree(tree_t *head)
+{
+        struct token tkn = head->token;
+        
+        switch (tkn.type) {
+        case INT:
+                printf("%d", tkn.val);
+                break;
+        case UNARY:
+                head = head->rval;
+                printf("(%s %d)", tkn.op, head->token.val);
+                break;
+        case FACTOR:
+        case TERM:
+                printf("(%s ", tkn.op);
+                print_tree(head->lval);
+                printf(" ");
+                print_tree(head->rval);
+                printf(")");
+                break;
+        default:
+                printf("\nInvalid token type: %d\n", tkn.type);
         }
 }
 
 
 void parse_expr(const char *str)
 {
+        tree_t *t;
+        buf_init(tree);
+        
         stream = str;
         printf("PARSING %s\n", stream);
         consume();
-        parse_term();
+        
+        t = parse_term();
+        print_tree(t);
+        printf("\n");
 }
 
 

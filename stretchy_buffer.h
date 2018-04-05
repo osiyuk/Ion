@@ -18,6 +18,7 @@ typedef struct {
 #define buf__grow(b, n) buf_grow((b), buf__len(b) + (n), sizeof(*(b)))
 #define buf__fit(b, n) (buf__fits(b, n) ? 0 : ((b) = buf__grow(b, n)))
 
+#define buf_init(b) buf__fit(b, 4)
 #define buf_len(b) buf__hdr(b)->len
 #define buf_push(b, x) (buf__fit(b, 1), b[buf_len(b)++] = (x))
 
@@ -26,7 +27,7 @@ void *buf_grow(const void *buf, size_t len, size_t elem_size)
         size_t new_cap, new_size;
         Bufhdr *hdr;
         
-        new_cap = buf__cap(buf) ? 2 * buf__cap(buf) : 1;
+        new_cap = buf__cap(buf) ? 2 * buf__cap(buf) : len;
         assert(len <= new_cap);
         new_size = offsetof(Bufhdr, buf) + new_cap * elem_size;
         
