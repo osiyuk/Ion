@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "stretchy_buffer.h"
 #include "fatal.h"
 
 // expression lexer for arithmetic language
@@ -23,12 +24,21 @@ struct token {
                 int val;
                 char op[4];
         };
-        struct token *lval;
-        struct token *rval;
 };
+
+
+typedef struct tree_s tree_t;
+
+struct tree_s {
+        struct token tkn;
+        tree_t *lval;
+        tree_t *rval;
+};
+
 
 const char *stream;
 struct token next;
+tree_t *tree = NULL;
 
 
 void expect_char(char c)
@@ -103,6 +113,17 @@ void print_token()
 }
 
 
+tree_t *push(tree_t node)
+{
+        int n = buf_len(tree);
+        buf_push(tree, node);
+        return tree + n;
+}
+
+#define leaf(token)             push((tree_t) {token, 0, 0})
+#define node(op, lval, rval)    push((tree_t) {op, lval, rval})
+
+
 // recursive descent parser, based on EBNF grammar
 
 // unary = INT | ('-' | '~') INT
@@ -112,7 +133,7 @@ void print_token()
 void parse_int()
 {
         if (next.type != INT)
-                fatal("expexted INT token, got '%c'", *stream);
+                fatal("expected INT token, got '%c'", *stream);
         
         print_token();
         consume();
