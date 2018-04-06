@@ -236,13 +236,20 @@ void recursive_descent()
 }
 
 
+// Shunting Yard algorithm
+
+// expr = production {binary production}
+// production = INT | unary INT
+// binary = '+' | '-' | '*' | '/' | '%' | '<<' | '>>' | '&' | '|' | '^'
+// unary = '-' | '~'
+
+
 void parse_expr(const char *str)
 {
-        tree_t *t;
         buf_init(tree);
         
+        printf("PARSING %s\n", str);
         stream = str;
-        printf("PARSING %s\n", stream);
         recursive_descent();
 }
 
