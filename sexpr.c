@@ -295,7 +295,7 @@ void parse_production()
 }
 
 
-void parse_exp()
+void parse_expr()
 {
         parse_production();
         
@@ -315,7 +315,7 @@ void shunting_yard()
         buf_init(operands);
         consume();
         
-        parse_exp();
+        parse_expr();
         
         while (buf_len(operators))
                 pop_operator();
@@ -380,7 +380,7 @@ struct operator table[] = {
 };
 
 
-void parse_expr(const char *str)
+void parse(const char *str)
 {
         buf_init(tree);
         
@@ -401,7 +401,7 @@ int main(int argc, char *argv[])
         }
         
         for (int i = 1; i < argc; i++) {
-                parse_expr(argv[i]);
+                parse(argv[i]);
         }
         
         return 0;
