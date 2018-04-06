@@ -139,15 +139,15 @@ void print_token()
 }
 
 
-tree_t *push(tree_t node)
+tree_t *tree_push(tree_t node)
 {
         int n = buf_len(tree);
         buf_push(tree, node);
         return tree + n;
 }
 
-#define leaf(token)             push((tree_t) {token, 0, 0})
-#define node(op, lval, rval)    push((tree_t) {op, lval, rval})
+#define push(token)             tree_push((tree_t) {token, 0, 0})
+#define node(op, lval, rval)    tree_push((tree_t) {op, lval, rval})
 
 
 // recursive descent parser, based on EBNF grammar
@@ -164,7 +164,7 @@ tree_t *parse_int()
         if (next.type != INT)
                 fatal("expected INT token, got '%c'", *stream);
         
-        t = leaf(next);
+        t = push(next);
         consume();
         return t;
 }
@@ -182,7 +182,7 @@ tree_t *parse_unary()
                 return parse_int();
         
         next.type = UNARY;
-        t = leaf(next);
+        t = push(next);
         consume();
         
         t->rval = parse_int();
