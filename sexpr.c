@@ -330,6 +330,56 @@ void shunting_yard()
 }
 
 
+// precedence climbing method
+
+// exp = exp(0)
+// exp(p) = production {binary exp(q)}
+// production = [unary] INT
+// binary = '+' | '-' | '*' | '/' | '%' | '<<' | '>>' | '&' | '|' | '^'
+// unary = '-' | '~'
+
+struct operator {
+        char precedence;
+        char op[3];
+        char right_associative:1;
+};
+
+enum {
+        UNARY_MINUS,
+        BITWISE_NOT,
+        MULTIPLY,
+        DIVIDE,
+        MODULO,
+        LEFT_SHIFT,
+        RIGHT_SHIFT,
+        BITWISE_AND,
+        ADD,
+        SUBTRACT,
+        BITWISE_OR,
+        BITWISE_XOR
+};
+
+enum {
+        LEFT = 0,
+        RIGHT_ASSOCIATIVE = 1
+};
+
+struct operator table[] = {
+        [UNARY_MINUS] = {2, "-", RIGHT_ASSOCIATIVE},
+        [BITWISE_NOT] = {2, "~", RIGHT_ASSOCIATIVE},
+        [MULTIPLY] =    {1, "*", LEFT},
+        [DIVIDE] =      {1, "/", LEFT},
+        [MODULO] =      {1, "%", LEFT},
+        [LEFT_SHIFT] =  {1, "<<", LEFT},
+        [RIGHT_SHIFT] = {1, ">>", LEFT},
+        [BITWISE_AND] = {1, "&", LEFT},
+        [ADD] =         {0, "+", LEFT},
+        [SUBTRACT] =    {0, "-", LEFT},
+        [BITWISE_OR] =  {0, "|", LEFT},
+        [BITWISE_XOR] = {0, "^", LEFT}
+};
+
+
 void parse_expr(const char *str)
 {
         buf_init(tree);
