@@ -231,6 +231,7 @@ void recursive_descent()
         tree_t *ast;
         consume();
         ast = parse_term();
+        printf("RD: ");
         print_tree(ast);
         printf("\n");
 }
@@ -239,9 +240,89 @@ void recursive_descent()
 // Shunting Yard algorithm
 
 // expr = production {binary production}
-// production = INT | unary INT
+// production = [unary] INT
 // binary = '+' | '-' | '*' | '/' | '%' | '<<' | '>>' | '&' | '|' | '^'
 // unary = '-' | '~'
+
+tree_t **operators = NULL;
+tree_t **operands = NULL;
+
+void pop_operator()
+{
+        tree_t *op;
+        
+        op = buf_pop(operators);
+        op->rval = buf_pop(operands);
+        
+        if (op->token.type != UNARY)
+                op->lval = buf_pop(operands);
+        buf_push(operands, op);
+}
+
+
+void push_operator(struct token op)
+{
+        struct token t;
+        
+check_precedence:
+        if (buf_len(operators) == 0)
+                goto push;
+        
+        t = buf_top(operators)->token;
+        
+        if (t.type <= op.type) {
+                pop_operator();
+                goto check_precedence;
+        }
+push:
+        buf_push(operators, push(op));
+}
+
+
+void shunting_yard()
+{
+        tree_t *ast;
+        int is_unary, is_binary;
+        
+        buf_init(operators);
+        buf_init(operands);
+        consume();
+        
+production:
+        is_unary = (next.type == UNARY ||
+                (next.type == TERM && *next.op == '-'));
+        
+        if (is_unary) {
+                next.type = UNARY;
+                push_operator(next);
+                consume();
+        }
+        
+        if (next.type != INT)
+                fatal("expected INT token, got '%c'", *stream);
+        
+        buf_push(operands, push(next));
+        consume();
+        
+        is_binary = (next.type == FACTOR || next.type == TERM);
+        
+        if (is_binary) {
+                push_operator(next);
+                consume();
+                goto production;
+        }
+        
+        while (buf_len(operators))
+                pop_operator();
+        
+        if (buf_len(operands) != 1)
+                fatal("shunting yard invariant broken, len(operands) != 1");
+        
+        ast = buf_pop(operands);
+        printf("SY: ");
+        print_tree(ast);
+        printf("\n");
+}
 
 
 void parse_expr(const char *str)
@@ -251,6 +332,9 @@ void parse_expr(const char *str)
         printf("PARSING %s\n", str);
         stream = str;
         recursive_descent();
+        
+        stream = str;
+        shunting_yard();
 }
 
 

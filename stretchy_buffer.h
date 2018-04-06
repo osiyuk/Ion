@@ -21,6 +21,8 @@ typedef struct {
 #define buf_init(b) buf__fit(b, 4)
 #define buf_len(b) buf__hdr(b)->len
 #define buf_push(b, x) (buf__fit(b, 1), b[buf_len(b)++] = (x))
+#define buf_pop(b) (b[--buf_len(b)])
+#define buf_top(b) (b[buf_len(b) - 1])
 
 void *buf_grow(const void *buf, size_t len, size_t elem_size)
 {
@@ -50,7 +52,7 @@ void buf_test()
                 buf_push(ints, i);
         }
         assert(buf_len(ints) == N);
-        for (int i = 0; i < buf_len(ints); i++) {
+        for (int i = 0; i < (int) buf_len(ints); i++) {
                 assert(ints[i] == i);
         }
 }
