@@ -247,6 +247,15 @@ void recursive_descent()
 tree_t **operators = NULL;
 tree_t **operands = NULL;
 
+char higher_precedence(u_char type)
+{
+        if (buf_len(operators) == 0)
+                return 0;
+        
+        return (type >= buf_top(operators)->token.type);
+}
+
+
 void pop_operator()
 {
         tree_t *op;
@@ -262,37 +271,17 @@ void pop_operator()
 
 void push_operator(struct token op)
 {
-        struct token t;
-        
-check_precedence:
-        if (buf_len(operators) == 0)
-                goto push;
-        
-        t = buf_top(operators)->token;
-        
-        if (t.type <= op.type) {
+        while (higher_precedence(op.type))
                 pop_operator();
-                goto check_precedence;
-        }
-push:
+        
         buf_push(operators, push(op));
 }
 
 
-void shunting_yard()
+void parse_production()
 {
-        tree_t *ast;
-        int is_unary, is_binary;
-        
-        buf_init(operators);
-        buf_init(operands);
-        consume();
-        
-production:
-        is_unary = (next.type == UNARY ||
-                (next.type == TERM && *next.op == '-'));
-        
-        if (is_unary) {
+        if (next.type == UNARY ||
+                (next.type == TERM && *next.op == '-')) {
                 next.type = UNARY;
                 push_operator(next);
                 consume();
@@ -303,14 +292,30 @@ production:
         
         buf_push(operands, push(next));
         consume();
+}
+
+
+void parse_exp()
+{
+        parse_production();
         
-        is_binary = (next.type == FACTOR || next.type == TERM);
-        
-        if (is_binary) {
+        while (next.type == FACTOR || next.type == TERM) {
                 push_operator(next);
                 consume();
-                goto production;
+                parse_production();
         }
+}
+
+
+void shunting_yard()
+{
+        tree_t *ast;
+        
+        buf_init(operators);
+        buf_init(operands);
+        consume();
+        
+        parse_exp();
         
         while (buf_len(operators))
                 pop_operator();
