@@ -104,6 +104,32 @@ stream:
 }
 
 
+void print_tree(tree_t *head)
+{
+        struct token tkn = head->token;
+        
+        switch (tkn.type) {
+        case INT:
+                printf("%d", tkn.val);
+                break;
+        case UNARY:
+                head = head->rval;
+                printf("(%s %d)", tkn.op, head->token.val);
+                break;
+        case FACTOR:
+        case TERM:
+                printf("(%s ", tkn.op);
+                print_tree(head->lval);
+                printf(" ");
+                print_tree(head->rval);
+                printf(")");
+                break;
+        default:
+                printf("\nInvalid token type: %d\n", tkn.type);
+        }
+}
+
+
 void print_token()
 {
         switch (next.type) {
@@ -200,29 +226,13 @@ tree_t *parse_term()
 }
 
 
-void print_tree(tree_t *head)
+void recursive_descent()
 {
-        struct token tkn = head->token;
-        
-        switch (tkn.type) {
-        case INT:
-                printf("%d", tkn.val);
-                break;
-        case UNARY:
-                head = head->rval;
-                printf("(%s %d)", tkn.op, head->token.val);
-                break;
-        case FACTOR:
-        case TERM:
-                printf("(%s ", tkn.op);
-                print_tree(head->lval);
-                printf(" ");
-                print_tree(head->rval);
-                printf(")");
-                break;
-        default:
-                printf("\nInvalid token type: %d\n", tkn.type);
-        }
+        tree_t *ast;
+        consume();
+        ast = parse_term();
+        print_tree(ast);
+        printf("\n");
 }
 
 
@@ -233,11 +243,7 @@ void parse_expr(const char *str)
         
         stream = str;
         printf("PARSING %s\n", stream);
-        consume();
-        
-        t = parse_term();
-        print_tree(t);
-        printf("\n");
+        recursive_descent();
 }
 
 
