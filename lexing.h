@@ -10,6 +10,9 @@
 
 typedef enum {
         TOKEN_EOF,
+        TOKEN_INC,
+        TOKEN_DEC,
+        
         TOKEN_L_PAREN,
         TOKEN_R_PAREN,
         TOKEN_L_BRACE,
@@ -52,6 +55,16 @@ typedef enum {
         
         TOKEN_ASSIGN,
         TOKEN_COLON_ASSIGN,
+        TOKEN_MUL_ASSIGN,
+        TOKEN_DIV_ASSIGN,
+        TOKEN_MOD_ASSIGN,
+        TOKEN_AND_ASSIGN,
+        TOKEN_LSHIFT_ASSIGN,
+        TOKEN_RSHIFT_ASSIGN,
+        TOKEN_ADD_ASSIGN,
+        TOKEN_SUB_ASSIGN,
+        TOKEN_XOR_ASSIGN,
+        TOKEN_OR_ASSIGN,
 } kind_t;
 
 struct Token {
@@ -208,30 +221,44 @@ repeat:
         CASE(',', TOKEN_COMMA)
         CASE2('!', TOKEN_NOT, '=', TOKEN_NEQ)
         CASE('~', TOKEN_NEG)
-        CASE('*', TOKEN_MUL)
-        CASE('/', TOKEN_DIV)
-        CASE('%', TOKEN_MOD)
-        CASE2('&', TOKEN_AND, '&', TOKEN_LOGICAL_AND)
-        CASE('+', TOKEN_ADD)
-        CASE('-', TOKEN_SUB)
-        CASE('^', TOKEN_XOR)
-        CASE2('|', TOKEN_OR, '|', TOKEN_LOGICAL_OR)
-        case '<':
-                token.kind = TOKEN_LT;
-                stream++;
-                switch (*stream) {
-                CASE('<', TOKEN_LSHIFT)
-                CASE('=', TOKEN_LTEQ)
-                default: return;
-                }
-        case '>':
-                token.kind = TOKEN_GT;
-                stream++;
-                switch (*stream) {
-                CASE('>', TOKEN_RSHIFT)
-                CASE('=', TOKEN_GTEQ)
-                default: return;
-                }
+        CASE2('*', TOKEN_MUL, '=', TOKEN_MUL_ASSIGN)
+        CASE2('/', TOKEN_DIV, '=', TOKEN_DIV_ASSIGN)
+        CASE2('%', TOKEN_MOD, '=', TOKEN_MOD_ASSIGN)
+#define CASE3(c, k, c1, k1, c2, k2) \
+        case c: \
+                token.kind = k; \
+                stream++; \
+                if (*stream == c1) { \
+                        token.kind = k1; \
+                        stream++; \
+                } else if (*stream == c2) { \
+                        token.kind = k2; \
+                        stream++; \
+                } \
+                return;
+        CASE3('&', TOKEN_AND, '=', TOKEN_AND_ASSIGN, '&', TOKEN_LOGICAL_AND)
+        CASE3('+', TOKEN_ADD, '=', TOKEN_ADD_ASSIGN, '+', TOKEN_INC)
+        CASE3('-', TOKEN_SUB, '=', TOKEN_SUB_ASSIGN, '-', TOKEN_DEC)
+        CASE2('^', TOKEN_XOR, '=', TOKEN_XOR_ASSIGN)
+        CASE3('|', TOKEN_OR, '=', TOKEN_OR_ASSIGN, '|', TOKEN_LOGICAL_OR)
+#define CASE4(c, k, c1, k1, k2, k3) \
+        case c: \
+                token.kind = k; \
+                stream++; \
+                if (*stream == c1) { \
+                        token.kind = k1; \
+                        stream++; \
+                } else if (*stream == c) { \
+                        token.kind = k2; \
+                        stream++; \
+                        if (*stream == c1) { \
+                                token.kind = k3; \
+                                stream++; \
+                        } \
+                } \
+                return;
+        CASE4('<', TOKEN_LT, '=', TOKEN_LTEQ, TOKEN_LSHIFT, TOKEN_LSHIFT_ASSIGN)
+        CASE4('>', TOKEN_GT, '=', TOKEN_GTEQ, TOKEN_RSHIFT, TOKEN_RSHIFT_ASSIGN)
         case 'a'...'z':
         case 'A'...'Z':
         case '_':
@@ -360,6 +387,23 @@ void lex_operator_tests()
         assert_token(TOKEN_NEQ);
         assert_token(TOKEN_LOGICAL_AND);
         assert_token(TOKEN_LOGICAL_OR);
+        assert_token_eof();
+        
+        stream = "++ -- := *= /= %= &= <<= >>= += -= ^= |=";
+        next_token();
+        assert_token(TOKEN_INC);
+        assert_token(TOKEN_DEC);
+        assert_token(TOKEN_COLON_ASSIGN);
+        assert_token(TOKEN_MUL_ASSIGN);
+        assert_token(TOKEN_DIV_ASSIGN);
+        assert_token(TOKEN_MOD_ASSIGN);
+        assert_token(TOKEN_AND_ASSIGN);
+        assert_token(TOKEN_LSHIFT_ASSIGN);
+        assert_token(TOKEN_RSHIFT_ASSIGN);
+        assert_token(TOKEN_ADD_ASSIGN);
+        assert_token(TOKEN_SUB_ASSIGN);
+        assert_token(TOKEN_XOR_ASSIGN);
+        assert_token(TOKEN_OR_ASSIGN);
         assert_token_eof();
 }
 
