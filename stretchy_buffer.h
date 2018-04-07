@@ -11,12 +11,13 @@ typedef struct {
         char buf[0];
 } Bufhdr;
 
-#define buf__hdr(b) ((Bufhdr *) ((char *) b - offsetof(Bufhdr, buf)))
+#define buf__hdr(b) ((Bufhdr *) ((size_t *) b - 2))
 #define buf__len(b) ((b) ? buf__hdr(b)->len : 0)
 #define buf__cap(b) ((b) ? buf__hdr(b)->cap : 0)
-#define buf__fits(b, n) (buf__len(b) + (n) <= buf__cap(b))
+#define buf__fits(b, n) buf__len(b) + (n) <= buf__cap(b)
 #define buf__grow(b, n) buf_grow((b), buf__len(b) + (n), sizeof(*(b)))
 #define buf__fit(b, n) (buf__fits(b, n) ? 0 : ((b) = buf__grow(b, n)))
+#define buf__push(b, x) (b[buf_len(b)++] = (x))
 
 #define buf_init(b) buf__fit(b, 4)
 #define buf_len(b) buf__hdr(b)->len

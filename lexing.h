@@ -9,6 +9,40 @@
 #include "error_reporting.h"
 #include "string_interning.h"
 
+
+#define KEYWORD(name) const char *name##_keyword;
+#include "keywords.txt"
+#undef KEYWORD
+
+const char **keywords;
+
+void init_keywords()
+{
+        static char inited;
+        if (inited) {
+                return;
+        }
+        keywords = buf_grow(NULL, 32, sizeof(char *));
+#define KEYWORD(name) KEYWORD1(name##_keyword, #name)
+#define KEYWORD1(v, name) \
+        v = str_intern(name); buf__push(keywords, v);
+#include "keywords.txt"
+#undef KEYWORD
+        assert(str_intern("func") == func_keyword);
+        inited = 1;
+}
+
+
+char is_keyword(const char *name)
+{
+        for (int i = 0; i < buf_len(keywords); i++) {
+                if (name == keywords[i])
+                        return 1;
+        }
+        return 0;
+}
+
+
 typedef enum {
         TOKEN_EOF,
         TOKEN_INC,
@@ -361,15 +395,17 @@ repeat:
         case 'a'...'z':
         case 'A'...'Z':
         case '_':
-                token.kind = TOKEN_NAME;
-                token.start = stream++;
-                while (isalnum(*stream)
-                        || *stream == '_') stream++;
-                token.length = stream - token.start;
-                token.name = str_intern_slice(token.start, token.length);
+                str = stream++;
+                while (isalnum(*stream) || *stream == '_') {
+                        stream++;
+                }
+                
+                token.name = str_intern_slice(str, stream - str);
+                token.kind = is_keyword(token.name) ? TOKEN_KEYWORD : TOKEN_NAME;
                 break;
         default:
-                syntax_error("Invalid '%c' token", *stream);
+                c = *stream;
+                syntax_error("unknown token '%c' %d, skipping", c, c);
                 stream++;
         }
 }
@@ -407,7 +443,11 @@ char match_token(uint8_t kind)
 #define assert_token_float(x) assert(token.float_val == (x) && match_token(TOKEN_FLOAT))
 #define assert_token_empty_str() assert(token.str_val == NULL && match_token(TOKEN_STR))
 #define assert_token_str(x) assert(strcmp(token.str_val, (x)) == 0 && match_token(TOKEN_STR))
+#define assert_token_name(x) assert(strcmp(token.name, (x)) == 0 && match_token(TOKEN_NAME))
+#define assert_token_keyword(x) assert(token.name == (x) && match_token(TOKEN_KEYWORD))
 #define assert_token_eof() assert(token.kind == TOKEN_EOF)
+
+#define init_stream(s) stream = s; next_token()
 
 
 void lex_integer_literal_tests()
@@ -548,14 +588,33 @@ void lex_operator_tests()
 }
 
 
+void lex_keyword_tests()
+{
+        stream = "while my_name cast with const qualifier default kiril27";
+        next_token();
+        assert_token_keyword(while_keyword);
+        assert_token_name("my_name");
+        assert_token_keyword(cast_keyword);
+        assert_token_name("with");
+        assert_token_keyword(const_keyword);
+        assert_token_name("qualifier");
+        assert_token_keyword(default_keyword);
+        assert_token_name("kiril27");
+        assert_token_eof();
+}
+
+
 void lex_test()
 {
+        init_keywords();
+        
         lex_integer_literal_tests();
         lex_float_literal_tests();
         lex_string_literal_tests();
         lex_char_literal_tests();
         lex_basic_token_tests();
         lex_operator_tests();
+        lex_keyword_tests();
 }
 
 #endif
