@@ -1,6 +1,7 @@
 #ifndef ION_LEXING
 #define ION_LEXING
 
+#include <assert.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -31,6 +32,7 @@ typedef enum {
         TOKEN_NAME,
         TOKEN_INT,
         TOKEN_FLOAT,
+        TOKEN_STR,
         
         TOKEN_MUL,
         TOKEN_DIV,
@@ -72,6 +74,7 @@ struct Token {
         union {
                 uint64_t val;
                 double float_val;
+                const char *str_val;
                 struct {
                         const char *start;
                         size_t length;
@@ -134,17 +137,51 @@ void scan_float()
         while (isdigit(*s)) s++;
         if (*s == '.') s++;
         while (isdigit(*s)) s++;
+        
         if (tolower(*s) == 'e') {
                 s++;
                 if (*s == '+' || *s == '-') s++;
-                if (!isdigit(*s))
+                
+                if (!isdigit(*s)) {
                         syntax_error("exponent has no digits");
+                }
                 while (isdigit(*s)) s++;
         }
         
         val = strtod(stream, NULL);
         token.float_val = val;
         stream = s;
+}
+
+
+void scan_str()
+{
+        char *str = NULL;
+        char c;
+        
+        assert(*stream == '"');
+        stream++;
+        
+        while (*stream && *stream != '"') {
+                c = *stream;
+                if (c == '\n') {
+                        goto missing;
+                }
+                buf_push(str, c);
+                stream++;
+        }
+        if (!*stream) {
+missing:
+                syntax_error("missing terminating \" character");
+                token.str_val = NULL;
+                return;
+        }
+        
+        assert(*stream == '"');
+        stream++;
+        
+        buf_push(str, 0);
+        token.str_val = str;
 }
 
 
@@ -158,6 +195,7 @@ repeat:
                 token.kind = TOKEN_EOF;
                 return;
         case ' ':
+        case 10:
                 while (isspace(*stream))
                         stream++;
                 goto repeat;
@@ -193,6 +231,10 @@ repeat:
                 }
                 token.kind = TOKEN_DOT;
                 stream++;
+                return;
+        case 34: // "
+                token.kind = TOKEN_STR;
+                scan_str();
                 return;
 #define CASE(c, k) \
         case c: \
@@ -306,6 +348,8 @@ char match_token(uint8_t kind)
 #define assert_token(kind) assert(match_token(kind))
 #define assert_token_int(x) assert(token.val == (x) && match_token(TOKEN_INT))
 #define assert_token_float(x) assert(token.float_val == (x) && match_token(TOKEN_FLOAT))
+#define assert_token_empty_str() assert(token.str_val == NULL && match_token(TOKEN_STR))
+#define assert_token_str(x) assert(strcmp(token.str_val, (x)) == 0 && match_token(TOKEN_STR))
 #define assert_token_eof() assert(token.kind == TOKEN_EOF)
 
 
@@ -338,6 +382,17 @@ void lex_float_literal_tests()
         assert_token_float(1e0);
         assert_token_float(1.);
         assert_token_float(13E200);
+        assert_token_eof();
+}
+
+
+void lex_string_literal_tests()
+{
+        stream = "\"typedef\" \"enum\" \"struct\"";
+        next_token();
+        assert_token_str("typedef");
+        assert_token_str("enum");
+        assert_token_str("struct");
         assert_token_eof();
 }
 
@@ -412,6 +467,7 @@ void lex_test()
 {
         lex_integer_literal_tests();
         lex_float_literal_tests();
+        lex_string_literal_tests();
         lex_basic_token_tests();
         lex_operator_tests();
 }

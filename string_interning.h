@@ -3,6 +3,7 @@
 
 // https://en.wikipedia.org/wiki/String_interning
 
+#include <assert.h>
 #include <string.h>
 #include "stretchy_buffer.h"
 
