@@ -10,9 +10,23 @@
 
 typedef enum {
         TOKEN_EOF,
-        TOKEN_INT = 128,
+        TOKEN_L_PAREN,
+        TOKEN_R_PAREN,
+        TOKEN_L_BRACE,
+        TOKEN_R_BRACE,
+        TOKEN_L_BRACKET,
+        TOKEN_R_BRACKET,
+        TOKEN_QUESTION,
+        TOKEN_COLON,
+        TOKEN_SEMICOLON,
+        TOKEN_COMMA,
+        TOKEN_DOT,
+        TOKEN_NOT,
+        TOKEN_NEG,
+        TOKEN_KEYWORD,
+        TOKEN_NAME,
+        TOKEN_INT,
         TOKEN_FLOAT,
-        TOKEN_NAME
 } kind_t;
 
 struct Token {
@@ -120,7 +134,6 @@ repeat:
                         scan_float();
                         return;
                 }
-                
                 token.kind = TOKEN_INT;
                 scan_int(10);
                 return;
@@ -131,14 +144,35 @@ repeat:
                         stream++;
                         base = 16;
                 }
-                
                 token.kind = TOKEN_INT;
                 scan_int(base);
                 return;
         case '.':
-                token.kind = TOKEN_FLOAT;
-                scan_float();
+                if (isdigit(stream[1])) {
+                        token.kind = TOKEN_FLOAT;
+                        scan_float();
+                        return;
+                }
+                token.kind = TOKEN_DOT;
+                stream++;
                 return;
+#define CASE(c, k) \
+        case c: \
+                token.kind = k; \
+                stream++; \
+                return;
+        CASE('(', TOKEN_L_PAREN)
+        CASE(')', TOKEN_R_PAREN)
+        CASE('[', TOKEN_L_BRACE)
+        CASE(']', TOKEN_R_BRACE)
+        CASE('{', TOKEN_L_BRACKET)
+        CASE('}', TOKEN_R_BRACKET)
+        CASE('?', TOKEN_QUESTION)
+        CASE(':', TOKEN_COLON)
+        CASE(';', TOKEN_SEMICOLON)
+        CASE(',', TOKEN_COMMA)
+        CASE('!', TOKEN_NOT)
+        CASE('~', TOKEN_NEG)
         case 'a'...'z':
         case 'A'...'Z':
         case '_':
@@ -183,6 +217,7 @@ char match_token(uint8_t kind)
 }
 
 
+#define assert_token(kind) assert(match_token(kind))
 #define assert_token_int(x) assert(token.val == (x) && match_token(TOKEN_INT))
 #define assert_token_float(x) assert(token.float_val == (x) && match_token(TOKEN_FLOAT))
 #define assert_token_eof() assert(token.kind == TOKEN_EOF)
@@ -221,10 +256,32 @@ void lex_float_literal_tests()
 }
 
 
+void lex_basic_token_tests()
+{
+        stream = "()[]{}?:;, .!~";
+        next_token();
+        assert_token(TOKEN_L_PAREN);
+        assert_token(TOKEN_R_PAREN);
+        assert_token(TOKEN_L_BRACE);
+        assert_token(TOKEN_R_BRACE);
+        assert_token(TOKEN_L_BRACKET);
+        assert_token(TOKEN_R_BRACKET);
+        assert_token(TOKEN_QUESTION);
+        assert_token(TOKEN_COLON);
+        assert_token(TOKEN_SEMICOLON);
+        assert_token(TOKEN_COMMA);
+        assert_token(TOKEN_DOT);
+        assert_token(TOKEN_NOT);
+        assert_token(TOKEN_NEG);
+        assert_token_eof();
+}
+
+
 void lex_test()
 {
         lex_integer_literal_tests();
         lex_float_literal_tests();
+        lex_basic_token_tests();
 }
 
 #endif
