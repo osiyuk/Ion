@@ -23,10 +23,35 @@ typedef enum {
         TOKEN_DOT,
         TOKEN_NOT,
         TOKEN_NEG,
+        
         TOKEN_KEYWORD,
         TOKEN_NAME,
         TOKEN_INT,
         TOKEN_FLOAT,
+        
+        TOKEN_MUL,
+        TOKEN_DIV,
+        TOKEN_MOD,
+        TOKEN_AND,
+        TOKEN_LSHIFT,
+        TOKEN_RSHIFT,
+        
+        TOKEN_ADD,
+        TOKEN_SUB,
+        TOKEN_XOR,
+        TOKEN_OR,
+        
+        TOKEN_EQ,
+        TOKEN_LT,
+        TOKEN_GT,
+        TOKEN_LTEQ,
+        TOKEN_GTEQ,
+        TOKEN_NEQ,
+        TOKEN_LOGICAL_AND,
+        TOKEN_LOGICAL_OR,
+        
+        TOKEN_ASSIGN,
+        TOKEN_COLON_ASSIGN,
 } kind_t;
 
 struct Token {
@@ -125,9 +150,9 @@ repeat:
                 goto repeat;
         case '1'...'9':
                 str = stream;
-                while (isdigit(*str))
+                while (isdigit(*str)) {
                         str++;
-                
+                }
                 c = *str;
                 if (c == '.' || tolower(c) == 'e') {
                         token.kind = TOKEN_FLOAT;
@@ -168,11 +193,45 @@ repeat:
         CASE('{', TOKEN_L_BRACKET)
         CASE('}', TOKEN_R_BRACKET)
         CASE('?', TOKEN_QUESTION)
-        CASE(':', TOKEN_COLON)
+#define CASE2(c, k, c1, k1) \
+        case c: \
+                token.kind = k; \
+                stream++; \
+                if (*stream == c1) { \
+                        token.kind = k1; \
+                        stream++;\
+                } \
+                return;
+        CASE2('=', TOKEN_ASSIGN, '=', TOKEN_EQ)
+        CASE2(':', TOKEN_COLON, '=', TOKEN_COLON_ASSIGN)
         CASE(';', TOKEN_SEMICOLON)
         CASE(',', TOKEN_COMMA)
-        CASE('!', TOKEN_NOT)
+        CASE2('!', TOKEN_NOT, '=', TOKEN_NEQ)
         CASE('~', TOKEN_NEG)
+        CASE('*', TOKEN_MUL)
+        CASE('/', TOKEN_DIV)
+        CASE('%', TOKEN_MOD)
+        CASE2('&', TOKEN_AND, '&', TOKEN_LOGICAL_AND)
+        CASE('+', TOKEN_ADD)
+        CASE('-', TOKEN_SUB)
+        CASE('^', TOKEN_XOR)
+        CASE2('|', TOKEN_OR, '|', TOKEN_LOGICAL_OR)
+        case '<':
+                token.kind = TOKEN_LT;
+                stream++;
+                switch (*stream) {
+                CASE('<', TOKEN_LSHIFT)
+                CASE('=', TOKEN_LTEQ)
+                default: return;
+                }
+        case '>':
+                token.kind = TOKEN_GT;
+                stream++;
+                switch (*stream) {
+                CASE('>', TOKEN_RSHIFT)
+                CASE('=', TOKEN_GTEQ)
+                default: return;
+                }
         case 'a'...'z':
         case 'A'...'Z':
         case '_':
@@ -258,7 +317,7 @@ void lex_float_literal_tests()
 
 void lex_basic_token_tests()
 {
-        stream = "()[]{}?:;, .!~";
+        stream = "()[]{} ? : ; , . ! ~";
         next_token();
         assert_token(TOKEN_L_PAREN);
         assert_token(TOKEN_R_PAREN);
@@ -277,11 +336,40 @@ void lex_basic_token_tests()
 }
 
 
+void lex_operator_tests()
+{
+        stream = "= := * / % & << >> + - ^ | == < > <= >= != && ||";
+        next_token();
+        assert_token(TOKEN_ASSIGN);
+        assert_token(TOKEN_COLON_ASSIGN);
+        assert_token(TOKEN_MUL);
+        assert_token(TOKEN_DIV);
+        assert_token(TOKEN_MOD);
+        assert_token(TOKEN_AND);
+        assert_token(TOKEN_LSHIFT);
+        assert_token(TOKEN_RSHIFT);
+        assert_token(TOKEN_ADD);
+        assert_token(TOKEN_SUB);
+        assert_token(TOKEN_XOR);
+        assert_token(TOKEN_OR);
+        assert_token(TOKEN_EQ);
+        assert_token(TOKEN_LT);
+        assert_token(TOKEN_GT);
+        assert_token(TOKEN_LTEQ);
+        assert_token(TOKEN_GTEQ);
+        assert_token(TOKEN_NEQ);
+        assert_token(TOKEN_LOGICAL_AND);
+        assert_token(TOKEN_LOGICAL_OR);
+        assert_token_eof();
+}
+
+
 void lex_test()
 {
         lex_integer_literal_tests();
         lex_float_literal_tests();
         lex_basic_token_tests();
+        lex_operator_tests();
 }
 
 #endif
