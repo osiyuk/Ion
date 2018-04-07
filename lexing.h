@@ -185,6 +185,23 @@ missing:
 }
 
 
+void scan_char()
+{
+        char c = 0;
+        
+        assert(*stream == '\'');
+        stream++;
+        
+        c = *stream;
+        stream++;
+        
+        assert(*stream == '\'');
+        stream++;
+        
+        token.val = c;
+}
+
+
 void next_token()
 {
         char c, base;
@@ -235,6 +252,10 @@ repeat:
         case 34: // "
                 token.kind = TOKEN_STR;
                 scan_str();
+                return;
+        case 39: // '
+                token.kind = TOKEN_INT;
+                scan_char();
                 return;
 #define CASE(c, k) \
         case c: \
@@ -397,6 +418,17 @@ void lex_string_literal_tests()
 }
 
 
+void lex_char_literal_tests()
+{
+        stream = "'a' 'b' 'c'";
+        next_token();
+        assert_token_int('a');
+        assert_token_int('b');
+        assert_token_int('c');
+        assert_token_eof();
+}
+
+
 void lex_basic_token_tests()
 {
         stream = "()[]{} ? : ; , . ! ~";
@@ -468,6 +500,7 @@ void lex_test()
         lex_integer_literal_tests();
         lex_float_literal_tests();
         lex_string_literal_tests();
+        lex_char_literal_tests();
         lex_basic_token_tests();
         lex_operator_tests();
 }
