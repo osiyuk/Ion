@@ -106,6 +106,17 @@ uint8_t char_to_digit[] = {
         ['f'] = 15, ['F'] = 15,
 };
 
+uint8_t escaped_char[] = {
+        ['0'] = 0,
+        ['"'] = '"',
+        ['\''] = '\'',
+        ['\\'] = '\\',
+        ['n'] = '\n',
+        ['r'] = '\r',
+        ['t'] = '\t',
+        ['v'] = '\v',
+};
+
 
 void scan_int(char base)
 {
@@ -164,7 +175,15 @@ void scan_str()
         
         while (*stream && *stream != '"') {
                 c = *stream;
-                if (c == '\n') {
+                switch (c) {
+                case '\\':
+                        stream++;
+                        c = escaped_char[(int) *stream];
+                        if (c == 0 && *stream != '0') {
+                                syntax_error("unknown escape sequence: '\\%c'", *stream);
+                        }
+                        break;
+                case '\n':
                         goto missing;
                 }
                 buf_push(str, c);
@@ -192,8 +211,25 @@ void scan_char()
         assert(*stream == '\'');
         stream++;
         
-        c = *stream;
-        stream++;
+        switch (*stream) {
+        case '\\':
+                stream++;
+                c = escaped_char[(int) *stream];
+                if (c == 0 && *stream != '0') {
+                        syntax_error("unknown escape sequence: '\\%c'", *stream);
+                }
+                stream++;
+                break;
+        case '\'':
+        case '\n':
+                syntax_error("missing terminating ' character");
+                stream++;
+                token.val = 0;
+                return;
+        default:
+                c = *stream;
+                stream++;
+        }
         
         assert(*stream == '\'');
         stream++;
@@ -415,6 +451,11 @@ void lex_string_literal_tests()
         assert_token_str("enum");
         assert_token_str("struct");
         assert_token_eof();
+        
+        stream = "\"escaped chars\\n\\r\\t\\v quotes \\'\\\"\\\\ null\\0\"";
+        next_token();
+        assert_token_str("escaped chars\n\r\t\v quotes \'\"\\ null\0");
+        assert_token_eof();
 }
 
 
@@ -425,6 +466,18 @@ void lex_char_literal_tests()
         assert_token_int('a');
         assert_token_int('b');
         assert_token_int('c');
+        assert_token_eof();
+        
+        stream = "'\\0' '\\n' '\\r' '\\t' '\\v' '\\'' '\\\"' '\\\\'";
+        next_token();
+        assert_token_int(0);
+        assert_token_int('\n');
+        assert_token_int('\r');
+        assert_token_int('\t');
+        assert_token_int('\v');
+        assert_token_int('\'');
+        assert_token_int('\"');
+        assert_token_int('\\');
         assert_token_eof();
 }
 
