@@ -32,15 +32,42 @@ struct Token token;
 const char *stream;
 
 
-void scan_int()
+uint8_t char_to_digit[] = {
+        ['0'] = 0,
+        ['1'] = 1,
+        ['2'] = 2,
+        ['3'] = 3,
+        ['4'] = 4,
+        ['5'] = 5,
+        ['6'] = 6,
+        ['7'] = 7,
+        ['8'] = 8,
+        ['9'] = 9,
+        ['a'] = 10, ['A'] = 10,
+        ['b'] = 11, ['B'] = 11,
+        ['c'] = 12, ['C'] = 12,
+        ['d'] = 13, ['D'] = 13,
+        ['e'] = 14, ['E'] = 14,
+        ['f'] = 15, ['F'] = 15,
+};
+
+
+void scan_int(char base)
 {
         char digit;
         uint64_t val = 0;
         
-        while (isdigit(*stream)) {
-                digit = (*stream - '0');
+        while (isxdigit(*stream)) {
+                digit = char_to_digit[(int) *stream];
                 
-                val = val * 10 + digit;
+                if (digit >= base) {
+                        syntax_error(
+                                "invalid digit \"%d\" in octal constant",
+                                digit);
+                        digit = 0;
+                }
+                
+                val = val * base + digit;
                 stream++;
         }
         token.val = val;
@@ -71,7 +98,7 @@ void scan_float()
 
 void next_token()
 {
-        char c;
+        char c, base;
         const char *str;
 repeat:
         switch (*stream) {
@@ -82,7 +109,7 @@ repeat:
                 while (isspace(*stream))
                         stream++;
                 goto repeat;
-        case '0'...'9':
+        case '1'...'9':
                 str = stream;
                 while (isdigit(*str))
                         str++;
@@ -91,10 +118,22 @@ repeat:
                 if (c == '.' || tolower(c) == 'e') {
                         token.kind = TOKEN_FLOAT;
                         scan_float();
-                } else {
-                        token.kind = TOKEN_INT;
-                        scan_int();
+                        return;
                 }
+                
+                token.kind = TOKEN_INT;
+                scan_int(10);
+                return;
+        case '0':
+                base = 8;
+                stream++;
+                if (*stream == 'x') {
+                        stream++;
+                        base = 16;
+                }
+                
+                token.kind = TOKEN_INT;
+                scan_int(base);
                 return;
         case '.':
                 token.kind = TOKEN_FLOAT;
@@ -157,6 +196,14 @@ void lex_integer_literal_tests()
         assert_token_int(1);
         assert_token_int(2147990990);
         assert_token_int(18446744073709551615u);
+        assert_token_eof();
+        
+        stream = "013 0xFF 0x00abcdef 0xffffffffffffffff";
+        next_token();
+        assert_token_int(013);
+        assert_token_int(0xFF);
+        assert_token_int(0x00abcdef);
+        assert_token_int(0xffffffffffffffff);
         assert_token_eof();
 }
 
