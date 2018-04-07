@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <stdio.h>
 
+#include "error_reporting.h"
 #include "string_interning.h"
 
 typedef enum {
@@ -60,7 +61,8 @@ repeat:
                 token.name = str_intern_slice(token.start, token.length);
                 break;
         default:
-                token.kind = *stream++;
+                syntax_error("Invalid '%c' token", *stream);
+                stream++;
         }
 }
 
@@ -92,17 +94,25 @@ char match_token(uint8_t kind)
 }
 
 
+#define assert_token_int(x) assert(token.val == (x) && match_token(TOKEN_INT))
+#define assert_token_eof() assert(token.kind == TOKEN_EOF)
+
+
 void lex_integer_literal_tests()
 {
+        stream = "0 1 2147990990 18446744073709551615";
+        next_token();
+        assert_token_int(0);
+        assert_token_int(1);
+        assert_token_int(2147990990);
+        assert_token_int(18446744073709551615u);
+        assert_token_eof();
 }
 
 
 void lex_test()
 {
-        stream = "var max_exprs = 1024\n\nconst PI = 3.14";
-        while (next_token(), token.kind) {
-                print_token();
-        }
+        lex_integer_literal_tests();
 }
 
 #endif
