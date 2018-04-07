@@ -8,6 +8,7 @@
 #include "string_interning.h"
 
 typedef enum {
+        TOKEN_EOF,
         TOKEN_INT = 128,
         TOKEN_NAME
 } kind_t;
@@ -30,7 +31,15 @@ const char *stream;
 
 void next_token()
 {
+repeat:
         switch (*stream) {
+        case 0:
+                token.kind = TOKEN_EOF;
+                return;
+        case ' ':
+                while (isspace(*stream))
+                        stream++;
+                goto repeat;
         case '0'...'9':
                 token.kind = TOKEN_INT;
                 token.val = 0;
@@ -63,7 +72,7 @@ void print_token()
                 printf("TOKEN_INT = %lu\n", token.val);
                 break;
         case TOKEN_NAME:
-                printf("TOKEN_NAME : %.*s\n", token.length, token.start);
+                printf("TOKEN_NAME : %.*s\n", (int) token.length, token.start);
                 break;
         default:
                 printf( isprint(token.kind) ?
@@ -71,6 +80,22 @@ void print_token()
                         "TOKEN %d\n", token.kind);
         }
 }
+
+
+char match_token(uint8_t kind)
+{
+        if (token.kind == kind) {
+                next_token();
+                return 1;
+        }
+        return 0;
+}
+
+
+void lex_integer_literal_tests()
+{
+}
+
 
 void lex_test()
 {
