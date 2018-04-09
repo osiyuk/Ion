@@ -10,6 +10,9 @@
 #include "string_interning.h"
 
 
+void next_token();
+
+
 #define KEYWORD(name) const char *name##_keyword;
 #include "keywords.txt"
 #undef KEYWORD
@@ -152,6 +155,12 @@ uint8_t escaped_char[] = {
 };
 
 
+#define invalid_digit "invalid digit \"%d\" in octal constant"
+#define unknown_escape "unknown escape sequence '\\%c'"
+#define missing_term "missing terminating %c character"
+#define unknown_token "unknown token '%c' %d, skipping"
+
+
 void scan_int(char base)
 {
         char digit;
@@ -161,9 +170,7 @@ void scan_int(char base)
                 digit = char_to_digit[(int) *stream];
                 
                 if (digit >= base) {
-                        syntax_error(
-                                "invalid digit \"%d\" in octal constant",
-                                digit);
+                        syntax_error(invalid_digit, digit);
                         digit = 0;
                 }
                 
@@ -214,7 +221,7 @@ void scan_str()
                         stream++;
                         c = escaped_char[(int) *stream];
                         if (c == 0 && *stream != '0') {
-                                syntax_error("unknown escape sequence: '\\%c'", *stream);
+                                syntax_error(unknown_escape, *stream);
                         }
                         break;
                 case '\n':
@@ -225,7 +232,7 @@ void scan_str()
         }
         if (!*stream) {
 missing:
-                syntax_error("missing terminating \" character");
+                syntax_error(missing_term, '"');
                 token.str_val = NULL;
                 return;
         }
@@ -250,13 +257,13 @@ void scan_char()
                 stream++;
                 c = escaped_char[(int) *stream];
                 if (c == 0 && *stream != '0') {
-                        syntax_error("unknown escape sequence: '\\%c'", *stream);
+                        syntax_error(unknown_escape, *stream);
                 }
                 stream++;
                 break;
         case '\'':
         case '\n':
-                syntax_error("missing terminating ' character");
+                syntax_error(missing_term, '\'');
                 stream++;
                 token.val = 0;
                 return;
@@ -405,7 +412,7 @@ repeat:
                 break;
         default:
                 c = *stream;
-                syntax_error("unknown token '%c' %d, skipping", c, c);
+                syntax_error(unknown_token, c, c);
                 stream++;
         }
 }
