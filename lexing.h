@@ -459,16 +459,14 @@ char match_token(uint8_t kind)
 
 void lex_integer_literal_tests()
 {
-        stream = "0 1 2147990990 18446744073709551615";
-        next_token();
+        init_stream("0 1 2147990990 18446744073709551615");
         assert_token_int(0);
         assert_token_int(1);
         assert_token_int(2147990990);
         assert_token_int(18446744073709551615u);
         assert_token_eof();
         
-        stream = "013 0xFF 0x00abcdef 0xffffffffffffffff";
-        next_token();
+        init_stream("013 0xFF 0x00abcdef 0xffffffffffffffff");
         assert_token_int(013);
         assert_token_int(0xFF);
         assert_token_int(0x00abcdef);
@@ -479,8 +477,7 @@ void lex_integer_literal_tests()
 
 void lex_float_literal_tests()
 {
-        stream = "3.1415 .318 1e0 1. 13E200";
-        next_token();
+        init_stream("3.1415 .318 1e0 1. 13E200");
         assert_token_float(3.1415);
         assert_token_float(.318);
         assert_token_float(1e0);
@@ -492,31 +489,27 @@ void lex_float_literal_tests()
 
 void lex_string_literal_tests()
 {
-        stream = "\"typedef\" \"enum\" \"struct\"";
-        next_token();
+        init_stream("\"typedef\" \"enum\" \"struct\"");
         assert_token_str("typedef");
         assert_token_str("enum");
         assert_token_str("struct");
         assert_token_eof();
         
-        stream = "\"escaped chars\\n\\r\\t\\v quotes \\'\\\"\\\\ null\\0\"";
-        next_token();
-        assert_token_str("escaped chars\n\r\t\v quotes \'\"\\ null\0");
+        init_stream("\"escaped chars\\n\\r\\tquotes \\'\\\"\\\\ null\\0\"");
+        assert_token_str("escaped chars\n\r\tquotes \'\"\\ null\0");
         assert_token_eof();
 }
 
 
 void lex_char_literal_tests()
 {
-        stream = "'a' 'b' 'c'";
-        next_token();
+        init_stream("'a' 'b' 'c'");
         assert_token_int('a');
         assert_token_int('b');
         assert_token_int('c');
         assert_token_eof();
         
-        stream = "'\\0' '\\n' '\\r' '\\t' '\\v' '\\'' '\\\"' '\\\\'";
-        next_token();
+        init_stream("'\\0' '\\n' '\\r' '\\t' '\\v' '\\'' '\\\"' '\\\\'");
         assert_token_int(0);
         assert_token_int('\n');
         assert_token_int('\r');
@@ -531,8 +524,7 @@ void lex_char_literal_tests()
 
 void lex_basic_token_tests()
 {
-        stream = "()[]{} ? : ; , . ! ~";
-        next_token();
+        init_stream("()[]{} ? : ; , . ! ~");
         assert_token(TOKEN_L_PAREN);
         assert_token(TOKEN_R_PAREN);
         assert_token(TOKEN_L_BRACE);
@@ -552,8 +544,7 @@ void lex_basic_token_tests()
 
 void lex_operator_tests()
 {
-        stream = "= := * / % & << >> + - ^ | == < > <= >= != && ||";
-        next_token();
+        init_stream("= := * / % & << >> + - ^ | == < > <= >= != && ||");
         assert_token(TOKEN_ASSIGN);
         assert_token(TOKEN_COLON_ASSIGN);
         assert_token(TOKEN_MUL);
@@ -576,8 +567,7 @@ void lex_operator_tests()
         assert_token(TOKEN_LOGICAL_OR);
         assert_token_eof();
         
-        stream = "++ -- := *= /= %= &= <<= >>= += -= ^= |=";
-        next_token();
+        init_stream("++ -- := *= /= %= &= <<= >>= += -= ^= |=");
         assert_token(TOKEN_INC);
         assert_token(TOKEN_DEC);
         assert_token(TOKEN_COLON_ASSIGN);
@@ -597,8 +587,7 @@ void lex_operator_tests()
 
 void lex_keyword_tests()
 {
-        stream = "while my_name cast with const qualifier default kiril27";
-        next_token();
+        init_stream("while my_name cast with const qualifier default kiril27");
         assert_token_keyword(while_keyword);
         assert_token_name("my_name");
         assert_token_keyword(cast_keyword);
