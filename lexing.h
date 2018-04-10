@@ -10,40 +10,8 @@
 #include "string_interning.h"
 
 
+void init_keywords();
 void next_token();
-
-
-#define KEYWORD(name) const char *name##_keyword;
-#include "keywords.txt"
-#undef KEYWORD
-
-const char **keywords;
-
-void init_keywords()
-{
-        static char inited;
-        if (inited) {
-                return;
-        }
-        keywords = buf_grow(NULL, 32, sizeof(char *));
-#define KEYWORD(name) KEYWORD1(name##_keyword, #name)
-#define KEYWORD1(v, name) \
-        v = str_intern(name); buf__push(keywords, v);
-#include "keywords.txt"
-#undef KEYWORD
-        assert(str_intern("func") == func_keyword);
-        inited = 1;
-}
-
-
-char is_keyword(const char *name)
-{
-        for (int i = 0; i < buf_len(keywords); i++) {
-                if (name == keywords[i])
-                        return 1;
-        }
-        return 0;
-}
 
 
 typedef enum {
@@ -106,6 +74,7 @@ typedef enum {
         TOKEN_OR_ASSIGN,
 } kind_t;
 
+
 struct Token {
         kind_t kind;
         union {
@@ -119,6 +88,41 @@ struct Token {
                 const char *name;
         };
 };
+
+
+#define KEYWORD(name) const char *name##_keyword;
+#include "keywords.txt"
+#undef KEYWORD
+
+const char **keywords;
+
+
+void init_keywords()
+{
+        static char inited;
+        if (inited) {
+                return;
+        }
+        keywords = buf_grow(NULL, 32, sizeof(char *));
+#define KEYWORD(name) KEYWORD1(name##_keyword, #name)
+#define KEYWORD1(v, name) \
+        v = str_intern(name); buf__push(keywords, v);
+#include "keywords.txt"
+#undef KEYWORD
+        assert(str_intern("func") == func_keyword);
+        inited = 1;
+}
+
+
+char is_keyword(const char *name)
+{
+        for (int i = 0; i < buf_len(keywords); i++) {
+                if (name == keywords[i])
+                        return 1;
+        }
+        return 0;
+}
+
 
 struct Token token;
 const char *stream;
