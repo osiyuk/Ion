@@ -7,6 +7,8 @@
 
 void print_expr(Expr *expr)
 {
+        const Expr e = *expr;
+        
         switch (expr->kind) {
         case EXPR_NAME:
                 printf(expr->name);
@@ -18,8 +20,63 @@ void print_expr(Expr *expr)
                 printf("%f", expr->float_val);
                 return;
         case EXPR_STR:
-                printf(expr->str_val);
+                printf("%c%s%c", '"', expr->str_val, '"');
                 return;
+        case EXPR_CAST:
+                assert(EXPR_CAST);
+        case EXPR_CALL:
+                printf("(");
+                print_expr(e.call.expr);
+                for (size_t i = 0; i < e.call.num_args; i++) {
+                        printf(" ");
+                        print_expr(e.call.args[i]);
+                }
+                printf(")");
+                return;
+        case EXPR_INDEX:
+                printf("([] ");
+                print_expr(e.index.lexpr);
+                printf(" ");
+                print_expr(e.index.lexpr);
+                printf(")");
+                return;
+        case EXPR_FIELD:
+                printf("(. ");
+                print_expr(e.field.expr);
+                printf(" ");
+                printf(e.field.name);
+                printf(")");
+                return;
+        case EXPR_UNARY:
+                printf("(%s ", token_kind(e.unary.op));
+                print_expr(e.unary.expr);
+                printf(")");
+                return;
+        case EXPR_BINARY:
+                printf("(%s ", token_kind(e.binary.op));
+                print_expr(e.binary.left);
+                printf(" ");
+                print_expr(e.binary.right);
+                printf(")");
+                return;
+        case EXPR_TERNARY:
+                printf("(? ");
+                print_expr(e.ternary.cond);
+                printf(" ");
+                print_expr(e.ternary.expr);
+                printf(" ");
+                print_expr(e.ternary.or_expr);
+                printf(")");
+                return;
+        case EXPR_COMPOUND:
+                assert(EXPR_COMPOUND == 0);
+        case EXPR_SIZEOF:
+                printf("(sizeof ");
+                print_expr(expr->sizeof_expr);
+                printf(")");
+                return;
+        case EXPR_SIZEOF_TYPE:
+                assert(EXPR_SIZEOF_TYPE);
         default:
                 assert(EXPR_NONE);
         }
