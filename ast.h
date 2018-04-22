@@ -31,6 +31,10 @@ enum ExprKind {
         EXPR_CALL,
         EXPR_INDEX,
         EXPR_FIELD,
+        EXPR_UNARY,
+        EXPR_BINARY,
+        EXPR_TERNARY,
+        EXPR_COMPOUND,
 };
 
 struct Expr {
@@ -61,6 +65,23 @@ struct Expr {
                         Expr *expr;
                         const char *name;
                 } field;
+                
+                struct {
+                        TokenKind op;
+                        Expr *expr;
+                } unary;
+                
+                struct {
+                        TokenKind op;
+                        Expr *left;
+                        Expr *right;
+                } binary;
+                
+                struct {
+                        Expr *cond;
+                        Expr *expr;
+                        Expr *or_expr;
+                } ternary;
         };
 };
 
@@ -138,6 +159,35 @@ Expr *new_expr_field(Expr *expr, const char *name)
         Expr *e = new_expr(EXPR_FIELD);
         e->field.expr = expr;
         e->field.name = name;
+        return e;
+}
+
+
+Expr *new_expr_unary(TokenKind op, Expr *expr)
+{
+        Expr *e = new_expr(EXPR_UNARY);
+        e->unary.op = op;
+        e->unary.expr = expr;
+        return e;
+}
+
+
+Expr *new_expr_binary(TokenKind op, Expr *left, Expr *right)
+{
+        Expr *e = new_expr(EXPR_BINARY);
+        e->binary.op = op;
+        e->binary.left = left;
+        e->binary.right = right;
+        return e;
+}
+
+
+Expr *new_expr_ternary(Expr *cond, Expr *expr, Expr *or_expr)
+{
+        Expr *e = new_expr(EXPR_TERNARY);
+        e->ternary.cond = cond;
+        e->ternary.expr = expr;
+        e->ternary.or_expr = or_expr;
         return e;
 }
 

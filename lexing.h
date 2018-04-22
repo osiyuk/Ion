@@ -14,7 +14,9 @@ void init_keywords();
 void next_token();
 
 
-typedef enum {
+typedef enum TokenKind TokenKind;
+
+enum TokenKind {
         TOKEN_EOF,
         TOKEN_INC,
         TOKEN_DEC,
@@ -72,11 +74,11 @@ typedef enum {
         TOKEN_SUB_ASSIGN,
         TOKEN_XOR_ASSIGN,
         TOKEN_OR_ASSIGN,
-} kind_t;
+};
 
 
 struct Token {
-        kind_t kind;
+        TokenKind kind;
         union {
                 uint64_t val;
                 double float_val;
