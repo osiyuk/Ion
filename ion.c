@@ -1,6 +1,7 @@
 #include "stretchy_buffer.h"
 #include "string_interning.h"
 #include "lexing.h"
+#include "ast.h"
 
 int main(int argc, char **argv)
 {

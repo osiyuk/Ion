@@ -7,6 +7,7 @@
 #include <string.h>
 
 typedef struct Expr Expr;
+typedef struct Typespec Typespec;
 
 
 void *ast_alloc(size_t size)
@@ -26,6 +27,10 @@ enum ExprKind {
         EXPR_INT,
         EXPR_FLOAT,
         EXPR_STR,
+        EXPR_CAST,
+        EXPR_CALL,
+        EXPR_INDEX,
+        EXPR_FIELD,
 };
 
 struct Expr {
@@ -35,6 +40,27 @@ struct Expr {
                 int64_t int_val;
                 double float_val;
                 const char *str_val;
+                
+                struct {
+                        Typespec *type;
+                        Expr *expr;
+                } cast;
+                
+                struct {
+                        Expr *expr;
+                        Expr **args;
+                        size_t num_args;
+                } call;
+                
+                struct {
+                        Expr *lexpr;
+                        Expr *pexpr;
+                } index;
+                
+                struct {
+                        Expr *expr;
+                        const char *name;
+                } field;
         };
 };
 
@@ -75,6 +101,43 @@ Expr *new_expr_str(const char *str_val)
 {
         Expr *e = new_expr(EXPR_STR);
         e->str_val = str_val;
+        return e;
+}
+
+
+Expr *new_expr_cast(Typespec *type, Expr *expr)
+{
+        Expr *e = new_expr(EXPR_CAST);
+        e->cast.type = type;
+        e->cast.expr = expr;
+        return e;
+}
+
+
+Expr *new_expr_call(Expr *expr, Expr **args, size_t num_args)
+{
+        Expr *e = new_expr(EXPR_CALL);
+        e->call.expr = expr;
+        e->call.args = args;
+        e->call.num_args = num_args;
+        return e;
+}
+
+
+Expr *new_expr_index(Expr *lexpr, Expr *pexpr)
+{
+        Expr *e = new_expr(EXPR_INDEX);
+        e->index.lexpr = lexpr;
+        e->index.pexpr = pexpr;
+        return e;
+}
+
+
+Expr *new_expr_field(Expr *expr, const char *name)
+{
+        Expr *e = new_expr(EXPR_FIELD);
+        e->field.expr = expr;
+        e->field.name = name;
         return e;
 }
 
