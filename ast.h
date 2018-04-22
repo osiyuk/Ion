@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "tokens.h"
+
 typedef struct Expr Expr;
 typedef struct Typespec Typespec;
 
