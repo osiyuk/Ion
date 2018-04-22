@@ -35,6 +35,8 @@ enum ExprKind {
         EXPR_BINARY,
         EXPR_TERNARY,
         EXPR_COMPOUND,
+        EXPR_SIZEOF,
+        EXPR_SIZEOF_TYPE,
 };
 
 struct Expr {
@@ -44,6 +46,8 @@ struct Expr {
                 int64_t int_val;
                 double float_val;
                 const char *str_val;
+                Expr *sizeof_expr;
+                Typespec *sizeof_type;
                 
                 struct {
                         Typespec *type;
@@ -188,6 +192,22 @@ Expr *new_expr_ternary(Expr *cond, Expr *expr, Expr *or_expr)
         e->ternary.cond = cond;
         e->ternary.expr = expr;
         e->ternary.or_expr = or_expr;
+        return e;
+}
+
+
+Expr *new_expr_sizeof(Expr *sizeof_expr)
+{
+        Expr *e = new_expr(EXPR_SIZEOF);
+        e->sizeof_expr = sizeof_expr;
+        return e;
+}
+
+
+Expr *new_expr_sizeof_type(Typespec *sizeof_type)
+{
+        Expr *e = new_expr(EXPR_SIZEOF_TYPE);
+        e->sizeof_type = sizeof_type;
         return e;
 }
 
