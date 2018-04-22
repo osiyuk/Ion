@@ -39,7 +39,7 @@ struct Expr {
 };
 
 
-Expr *expr_new(enum ExprKind kind)
+Expr *new_expr(enum ExprKind kind)
 {
         Expr *e = ast_alloc(sizeof(Expr));
         e->kind = kind;
@@ -47,33 +47,33 @@ Expr *expr_new(enum ExprKind kind)
 }
 
 
-Expr *expr_name(const char *name)
+Expr *new_expr_name(const char *name)
 {
-        Expr *e = expr_new(EXPR_NAME);
+        Expr *e = new_expr(EXPR_NAME);
         e->name = name;
         return e;
 }
 
 
-Expr *expr_int(int64_t int_val)
+Expr *new_expr_int(int64_t int_val)
 {
-        Expr *e = expr_new(EXPR_INT);
+        Expr *e = new_expr(EXPR_INT);
         e->int_val = int_val;
         return e;
 }
 
 
-Expr *expr_float(double float_val)
+Expr *new_expr_float(double float_val)
 {
-        Expr *e = expr_new(EXPR_FLOAT);
+        Expr *e = new_expr(EXPR_FLOAT);
         e->float_val = float_val;
         return e;
 }
 
 
-Expr *expr_str(const char *str_val)
+Expr *new_expr_str(const char *str_val)
 {
-        Expr *e = expr_new(EXPR_STR);
+        Expr *e = new_expr(EXPR_STR);
         e->str_val = str_val;
         return e;
 }
