@@ -13,12 +13,13 @@
 
 void init_keywords();
 void next_token();
+char match_token(TokenKind);
 
 
 struct Token {
         TokenKind kind;
         union {
-                uint64_t val;
+                uint64_t int_val;
                 double float_val;
                 const char *str_val;
                 struct {
@@ -87,7 +88,7 @@ void scan_int(char base)
                 val = val * base + digit;
                 stream++;
         }
-        token.val = val;
+        token.int_val = val;
 }
 
 
@@ -175,7 +176,7 @@ void scan_char()
         case '\n':
                 syntax_error(missing_term, '\'');
                 stream++;
-                token.val = 0;
+                token.int_val = 0;
                 return;
         default:
                 c = *stream;
@@ -185,7 +186,7 @@ void scan_char()
         assert(*stream == '\'');
         stream++;
         
-        token.val = c;
+        token.int_val = c;
 }
 
 
@@ -328,7 +329,7 @@ _float:
 }
 
 
-char match_token(uint8_t kind)
+char match_token(TokenKind kind)
 {
         if (token.kind == kind) {
                 next_token();
@@ -339,7 +340,7 @@ char match_token(uint8_t kind)
 
 
 #define assert_token(kind) assert(match_token(kind))
-#define assert_token_int(x) assert(token.val == (x) && match_token(TOKEN_INT))
+#define assert_token_int(x) assert(token.int_val == (x) && match_token(TOKEN_INT))
 #define assert_token_float(x) assert(token.float_val == (x) && match_token(TOKEN_FLOAT))
 #define assert_token_empty_str() assert(token.str_val == NULL && match_token(TOKEN_STR))
 #define assert_token_str(x) assert(strcmp(token.str_val, (x)) == 0 && match_token(TOKEN_STR))
