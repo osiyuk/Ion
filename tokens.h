@@ -3,7 +3,11 @@
 
 #include <assert.h>
 
+
 typedef enum TokenKind TokenKind;
+
+const char *token_kind(TokenKind);
+
 
 enum TokenKind {
         TOKEN_EOF,

@@ -7,9 +7,9 @@
 #include <stdio.h>
 
 #include "error_reporting.h"
-#include "string_interning.h"
 
 #include "tokens.h"
+#include "keywords.h"
 
 void init_keywords();
 void next_token();
@@ -28,40 +28,6 @@ struct Token {
                 const char *name;
         };
 };
-
-
-#define KEYWORD(name) const char *name##_keyword;
-#include "keywords.txt"
-#undef KEYWORD
-
-const char **keywords;
-
-
-void init_keywords()
-{
-        static char inited;
-        if (inited) {
-                return;
-        }
-        keywords = buf_grow(NULL, 32, sizeof(char *));
-#define KEYWORD(name) KEYWORD1(name##_keyword, #name)
-#define KEYWORD1(v, name) \
-        v = str_intern(name); buf__push(keywords, v);
-#include "keywords.txt"
-#undef KEYWORD
-        assert(str_intern("func") == func_keyword);
-        inited = 1;
-}
-
-
-char is_keyword(const char *name)
-{
-        for (int i = 0; i < buf_len(keywords); i++) {
-                if (name == keywords[i])
-                        return 1;
-        }
-        return 0;
-}
 
 
 struct Token token;
@@ -238,34 +204,34 @@ repeat:
                         stream++;
                 goto repeat;
         case '1'...'9':
+                base = 10;
                 str = stream;
                 while (isdigit(*str)) {
                         str++;
                 }
                 c = *str;
                 if (c == '.' || tolower(c) == 'e') {
-                        token.kind = TOKEN_FLOAT;
-                        scan_float();
-                        return;
+                        goto _float;
                 }
+_int:
                 token.kind = TOKEN_INT;
-                scan_int(10);
+                scan_int(base);
+                return;
+_float:
+                token.kind = TOKEN_FLOAT;
+                scan_float();
                 return;
         case '0':
                 base = 8;
                 stream++;
                 if (*stream == 'x') {
-                        stream++;
                         base = 16;
+                        stream++;
                 }
-                token.kind = TOKEN_INT;
-                scan_int(base);
-                return;
+                goto _int;
         case '.':
                 if (isdigit(stream[1])) {
-                        token.kind = TOKEN_FLOAT;
-                        scan_float();
-                        return;
+                        goto _float;
                 }
                 token.kind = TOKEN_DOT;
                 stream++;
@@ -358,23 +324,6 @@ repeat:
                 c = *stream;
                 syntax_error(unknown_token, c, c);
                 stream++;
-        }
-}
-
-
-void print_token()
-{
-        switch (token.kind) {
-        case TOKEN_INT:
-                printf("TOKEN_INT = %lu\n", token.val);
-                break;
-        case TOKEN_NAME:
-                printf("TOKEN_NAME : %.*s\n", (int) token.length, token.start);
-                break;
-        default:
-                printf( isprint(token.kind) ?
-                        "TOKEN '%c'\n" :
-                        "TOKEN %d\n", token.kind);
         }
 }
 
