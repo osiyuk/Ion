@@ -13,7 +13,10 @@
 
 void init_keywords();
 void next_token();
+const char *token_info();
+char match_keyword(const char *keyword);
 char match_token(TokenKind);
+char expect_token(TokenKind);
 
 
 struct Token {
@@ -70,6 +73,7 @@ uint8_t escaped_char[] = {
 #define unknown_escape "unknown escape sequence '\\%c'"
 #define missing_term "missing terminating %c character"
 #define unknown_token "unknown token '%c' %d, skipping"
+#define expected_token "Expected token %s, got %s"
 
 
 void scan_int(char base)
@@ -329,12 +333,41 @@ _float:
 }
 
 
+const char *token_info()
+{
+        if (token.kind == TOKEN_KEYWORD || token.kind == TOKEN_NAME) {
+                return token.name;
+        }
+        return token_kind(token.kind);
+}
+
+
+char match_keyword(const char *name)
+{
+        if (is_keyword(name)) {
+                next_token();
+                return 1;
+        }
+        return 0;
+}
+
+
 char match_token(TokenKind kind)
 {
         if (token.kind == kind) {
                 next_token();
                 return 1;
         }
+        return 0;
+}
+
+
+char expect_token(TokenKind kind)
+{
+        if (match_token(kind)) {
+                return 1;
+        }
+        syntax_error(expected_token, token_kind(kind), token_info());
         return 0;
 }
 
