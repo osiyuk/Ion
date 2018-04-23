@@ -17,7 +17,7 @@ void error(const char *fmt, ...)
         va_end(args);
 }
 
-#define fatal_error(...) (error(__VA_ARGS__), exit(1))
+#define fatal_error(...) (printf("error: "), error(__VA_ARGS__), exit(1))
 #define syntax_error(...) (printf("syntax_error: "), error(__VA_ARGS__))
 
 #endif
