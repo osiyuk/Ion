@@ -4,6 +4,10 @@
 #include "ast.h"
 #include "lexer.h"
 
+Expr *parse_operand(void);
+char is_prefix_op();
+char is_postfix_op();
+char is_binary_op();
 Expr *parse_expr(void);
 
 Typespec *parse_type(void);
@@ -61,6 +65,54 @@ sizeof_type:
         
         syntax_error(unexpected_token, token_info(), "expression");
         return NULL;
+}
+
+
+enum {
+        FALSE = 0,
+        TRUE = 1
+};
+
+
+char is_prefix_op()
+{
+        switch (token.kind) {
+        case TOKEN_INC:
+        case TOKEN_DEC:
+        case TOKEN_NOT:
+        case TOKEN_NEG:
+        case TOKEN_MUL:
+        case TOKEN_AND:
+        case TOKEN_ADD:
+        case TOKEN_SUB:
+                return TRUE;
+        }
+        return FALSE;
+}
+
+
+char is_postfix_op()
+{
+        switch (token.kind) {
+        case TOKEN_INC:
+        case TOKEN_DEC:
+        case TOKEN_L_PAREN:
+        case TOKEN_L_BRACKET:
+        case TOKEN_DOT:
+                return TRUE;
+        }
+        return FALSE;
+}
+
+
+char is_binary_op()
+{
+        TokenKind k = token.kind;
+        
+        if (TOKEN_MUL <= k && k <= TOKEN_LOGICAL_OR) {
+                return TRUE;
+        }
+        return FALSE;
 }
 
 #endif
