@@ -75,6 +75,7 @@ struct Expr {
                 struct {
                         TokenKind op;
                         Expr *expr;
+                        char is_postfix;
                 } unary;
                 
                 struct {
@@ -169,11 +170,28 @@ Expr *new_expr_field(Expr *expr, const char *name)
 }
 
 
+enum {
+        PREFIX = 0,
+        POSTFIX = 1
+};
+
+
 Expr *new_expr_unary(TokenKind op, Expr *expr)
 {
         Expr *e = new_expr(EXPR_UNARY);
         e->unary.op = op;
         e->unary.expr = expr;
+        e->unary.is_postfix = PREFIX;
+        return e;
+}
+
+
+Expr *new_expr_postfix(TokenKind op, Expr *expr)
+{
+        Expr *e = new_expr(EXPR_UNARY);
+        e->unary.op = op;
+        e->unary.expr = expr;
+        e->unary.is_postfix = POSTFIX;
         return e;
 }
 
