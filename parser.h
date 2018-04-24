@@ -8,6 +8,7 @@ Expr *parse_operand(void);
 char is_prefix_op();
 char is_postfix_op();
 char is_binary_op();
+Expr *parse_unary(void);
 Expr *parse_expr(void);
 
 Typespec *parse_type(void);
@@ -116,6 +117,71 @@ char is_binary_op()
                 return TRUE;
         }
         return FALSE;
+}
+
+
+Expr *parse_unary(void)
+{
+        TokenKind op;
+        Expr *e;
+        
+        if (is_prefix_op()) {
+                op = token.kind;
+                next_token();
+                e = parse_unary();
+                return new_expr_unary(op, e);
+        }
+        e = parse_operand();
+        
+        while (is_postfix_op()) {
+                Expr **args, *pexpr;
+                const char *name;
+                
+                if (is_token(TOKEN_INC) || is_token(TOKEN_DEC)) {
+                        goto postfix;
+                }
+                if (match_token(TOKEN_L_PAREN)) {
+                        goto func_call;
+                }
+                if (match_token(TOKEN_L_BRACKET)) {
+                        goto index_access;
+                }
+                if (match_token(TOKEN_DOT)) {
+                        goto field_access;
+                }
+                fatal_error("unreachable");
+postfix:
+                op = token.kind;
+                next_token();
+                e = new_expr_postfix(op, e);
+                continue;
+func_call:
+                args = NULL;
+                buf_init(args);
+                
+                if (is_token(TOKEN_R_PAREN)) {
+                        goto r_paren;
+                }
+                buf_push(args, parse_expr());
+                while (match_token(TOKEN_COMMA)) {
+                        buf_push(args, parse_expr());
+                }
+r_paren:
+                expect_token(TOKEN_R_PAREN);
+                e = new_expr_call(e, args, buf_len(args));
+                continue;
+index_access:
+                pexpr = parse_expr();
+                expect_token(TOKEN_R_BRACKET);
+                e = new_expr_index(e, pexpr);
+                continue;
+field_access:
+                name = token.name;
+                expect_token(TOKEN_NAME);
+                e = new_expr_field(e, name);
+                continue;
+        }
+        return e;
 }
 
 #endif
