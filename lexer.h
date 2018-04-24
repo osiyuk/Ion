@@ -336,7 +336,7 @@ _float:
 
 const char *token_info()
 {
-        if (token.kind == TOKEN_KEYWORD || token.kind == TOKEN_NAME) {
+        if (is_token(TOKEN_KEYWORD) || is_token(TOKEN_NAME)) {
                 return token.name;
         }
         return token_kind(token.kind);
