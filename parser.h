@@ -20,24 +20,27 @@ Expr *parse_operand(void)
         Expr *e;
         Typespec *t;
         
-        switch (token.kind) {
-        case TOKEN_L_PAREN:
+        if (match_token(TOKEN_L_PAREN)) {
                 e = parse_expr();
                 expect_token(TOKEN_R_PAREN);
                 return e;
-        case TOKEN_NAME:
+        }
+        if (is_token(TOKEN_NAME)) {
                 e = new_expr_name(token.name);
                 next_token();
                 return e;
-        case TOKEN_INT:
+        }
+        if (is_token(TOKEN_INT)) {
                 e = new_expr_int(token.int_val);
                 next_token();
                 return e;
-        case TOKEN_FLOAT:
+        }
+        if (is_token(TOKEN_FLOAT)) {
                 e = new_expr_float(token.float_val);
                 next_token();
                 return e;
-        case TOKEN_STR:
+        }
+        if (is_token(TOKEN_STR)) {
                 e = new_expr_str(token.str_val);
                 next_token();
                 return e;
