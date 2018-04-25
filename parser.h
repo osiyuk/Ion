@@ -93,8 +93,9 @@ char is_prefix_op()
         case TOKEN_ADD:
         case TOKEN_SUB:
                 return TRUE;
+        default:
+                return FALSE;
         }
-        return FALSE;
 }
 
 
@@ -107,8 +108,9 @@ char is_postfix_op()
         case TOKEN_L_BRACKET:
         case TOKEN_DOT:
                 return TRUE;
+        default:
+                return FALSE;
         }
-        return FALSE;
 }
 
 
@@ -125,7 +127,7 @@ char is_binary_op()
 
 char op_precedence(TokenKind k)
 {
-        assert(TOKEN_MUL <= k && k <= TOKEN_LOGICAL_OR);
+        assert(TOKEN_MUL <= k);
         
         switch (k) {
         /* addition-multiplication group */
@@ -160,6 +162,9 @@ char op_precedence(TokenKind k)
                 return 9;
         case TOKEN_LOGICAL_OR:
                 return 10;
+        default:
+                assert(k <= TOKEN_LOGICAL_OR);
+                return 0;
         }
 }
 
