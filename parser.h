@@ -8,6 +8,7 @@ Expr *parse_operand(void);
 char is_prefix_op();
 char is_postfix_op();
 char is_binary_op();
+char op_precedence(TokenKind);
 Expr *parse_unary(void);
 Expr *parse_expr(void);
 
@@ -117,6 +118,47 @@ char is_binary_op()
                 return TRUE;
         }
         return FALSE;
+}
+
+
+char op_precedence(TokenKind k)
+{
+        assert(TOKEN_MUL <= k && k <= TOKEN_LOGICAL_OR);
+        
+        switch (k) {
+        /* addition-multiplication group */
+        case TOKEN_MUL:
+        case TOKEN_DIV:
+        case TOKEN_MOD:
+                return 1;
+        case TOKEN_ADD:
+        case TOKEN_SUB:
+                return 2;
+        /* bitwise operator group */
+        case TOKEN_LSHIFT:
+        case TOKEN_RSHIFT:
+                return 3;
+        case TOKEN_AND:
+                return 4;
+        case TOKEN_XOR:
+                return 5;
+        case TOKEN_OR:
+                return 6;
+        /* relational operator group */
+        case TOKEN_LT:
+        case TOKEN_LTEQ:
+        case TOKEN_GT:
+        case TOKEN_GTEQ:
+                return 7;
+        case TOKEN_EQ:
+        case TOKEN_NEQ:
+                return 8;
+        /* logical operator group */
+        case TOKEN_LOGICAL_AND:
+                return 9;
+        case TOKEN_LOGICAL_OR:
+                return 10;
+        }
 }
 
 
