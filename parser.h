@@ -182,48 +182,40 @@ Expr *parse_unary(void)
                 const char *name;
                 
                 if (is_token(TOKEN_INC) || is_token(TOKEN_DEC)) {
-                        goto postfix;
+                        op = token.kind;
+                        next_token();
+                        e = new_expr_postfix(op, e);
+                        continue;
                 }
                 if (match_token(TOKEN_L_PAREN)) {
-                        goto func_call;
+                        /* func_call */;
+                        args = NULL;
+                        buf_init(args);
+                        
+                        if (is_token(TOKEN_R_PAREN)) {
+                                goto end_call;
+                        }
+                        buf_push(args, parse_expr());
+                        while (match_token(TOKEN_COMMA)) {
+                                buf_push(args, parse_expr());
+                        }
+end_call:
+                        expect_token(TOKEN_R_PAREN);
+                        e = new_expr_call(e, args, buf_len(args));
+                        continue;
                 }
                 if (match_token(TOKEN_L_BRACKET)) {
-                        goto index_access;
+                        /* index_access */
+                        pexpr = parse_expr();
+                        expect_token(TOKEN_R_BRACKET);
+                        e = new_expr_index(e, pexpr);
+                        continue;
                 }
-                if (match_token(TOKEN_DOT)) {
-                        goto field_access;
-                }
-                fatal_error("unreachable");
-postfix:
-                op = token.kind;
-                next_token();
-                e = new_expr_postfix(op, e);
-                continue;
-func_call:
-                args = NULL;
-                buf_init(args);
-                
-                if (is_token(TOKEN_R_PAREN)) {
-                        goto r_paren;
-                }
-                buf_push(args, parse_expr());
-                while (match_token(TOKEN_COMMA)) {
-                        buf_push(args, parse_expr());
-                }
-r_paren:
-                expect_token(TOKEN_R_PAREN);
-                e = new_expr_call(e, args, buf_len(args));
-                continue;
-index_access:
-                pexpr = parse_expr();
-                expect_token(TOKEN_R_BRACKET);
-                e = new_expr_index(e, pexpr);
-                continue;
-field_access:
+                /* field_access */
+                expect_token(TOKEN_DOT);
                 name = token.name;
                 expect_token(TOKEN_NAME);
                 e = new_expr_field(e, name);
-                continue;
         }
         return e;
 }
