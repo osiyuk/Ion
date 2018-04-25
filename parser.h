@@ -10,6 +10,7 @@ char is_postfix_op();
 char is_binary_op();
 char op_precedence(TokenKind);
 Expr *parse_unary(void);
+Expr *parse_binary(char q);
 Expr *parse_expr(void);
 
 Typespec *parse_type(void);
@@ -222,6 +223,27 @@ field_access:
                 expect_token(TOKEN_NAME);
                 e = new_expr_field(e, name);
                 continue;
+        }
+        return e;
+}
+
+
+Expr *parse_binary(char q)
+{
+        TokenKind op;
+        Expr *e;
+        
+        e = parse_unary();
+        
+        while (is_binary_op()) {
+                op = token.kind;
+                next_token();
+                if (op_precedence(op) > q) {
+                        q = 1 + op_precedence(op);
+                        e = new_expr_binary(op, e, parse_binary(q));
+                        continue;
+                }
+                e = new_expr_binary(op, e, parse_unary());
         }
         return e;
 }
