@@ -11,6 +11,7 @@ char is_binary_op();
 char op_precedence(TokenKind);
 Expr *parse_unary(void);
 Expr *parse_binary(char q);
+Expr *parse_ternary(void);
 Expr *parse_expr(void);
 
 Typespec *parse_type(void);
@@ -246,6 +247,25 @@ Expr *parse_binary(char q)
                 e = new_expr_binary(op, e, parse_unary());
         }
         return e;
+}
+
+
+Expr *parse_ternary(void)
+{
+        Expr *e = parse_binary(1);
+        
+        if (match_token(TOKEN_QUESTION)) {
+                Expr *then = parse_binary(1);
+                expect_token(TOKEN_COLON);
+                e = new_expr_ternary(e, then, parse_ternary());
+        }
+        return e;
+}
+
+
+Expr *parse_expr(void)
+{
+        return parse_ternary();
 }
 
 #endif
