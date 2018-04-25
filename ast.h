@@ -231,5 +231,86 @@ Expr *new_expr_sizeof_type(Typespec *sizeof_type)
         return e;
 }
 
+
+enum TypespecKind {
+        TYPESPEC_NONE,
+        TYPESPEC_NAME,
+        TYPESPEC_CONST,
+        TYPESPEC_PTR,
+        TYPESPEC_ARRAY,
+        TYPESPEC_FUNCTION
+};
+
+struct Typespec {
+        enum TypespecKind kind;
+        union {
+                const char *name;
+                Typespec *base;
+                struct {
+                        Typespec *base;
+                        Expr *length;
+                } array;
+                struct {
+                        Typespec **args;
+                        size_t num_args;
+                        Typespec *ret;
+                } function;
+        };
+};
+
+
+Typespec *new_typespec(enum TypespecKind kind)
+{
+        Typespec *t = ast_alloc(sizeof(Typespec));
+        t->kind = kind;
+        return t;
+}
+
+
+Typespec *new_typespec_name(const char *name)
+{
+        Typespec *t = new_typespec(TYPESPEC_NAME);
+        t->name = name;
+        return t;
+}
+
+
+Typespec *new_typespec_const(Typespec *base)
+{
+        Typespec *t = new_typespec(TYPESPEC_CONST);
+        t->base = base;
+        return t;
+}
+
+
+Typespec *new_typespec_ptr(Typespec *base)
+{
+        Typespec *t = new_typespec(TYPESPEC_PTR);
+        t->base = base;
+        return t;
+}
+
+
+Typespec *new_typespec_array(Typespec *base, Expr *length)
+{
+        Typespec *t = new_typespec(TYPESPEC_CONST);
+        t->array.base = base;
+        t->array.length = length;
+        return t;
+}
+
+
+Typespec *new_typespec_function(
+        Typespec **args,
+        size_t num_args,
+        Typespec *ret
+) {
+        Typespec *t = new_typespec(TYPESPEC_FUNCTION);
+        t->function.args = args;
+        t->function.num_args = num_args;
+        t->function.ret = ret;
+        return t;
+}
+
 #endif
 
