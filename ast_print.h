@@ -14,7 +14,7 @@ void print_expr(Expr *expr)
                 printf(expr->name);
                 return;
         case EXPR_INT:
-                printf("%d", expr->int_val);
+                printf("%ld", expr->int_val);
                 return;
         case EXPR_FLOAT:
                 printf("%f", expr->float_val);
