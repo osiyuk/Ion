@@ -15,6 +15,7 @@ void init_keywords();
 void next_token();
 const char *token_info();
 char match_keyword(const char *keyword);
+char is_token_keyword(const char *name);
 char is_token(TokenKind);
 char match_token(TokenKind);
 char expect_token(TokenKind);
@@ -345,8 +346,17 @@ const char *token_info()
 
 char match_keyword(const char *name)
 {
-        if (is_keyword(name)) {
+        if (is_token_keyword(name)) {
                 next_token();
+                return 1;
+        }
+        return 0;
+}
+
+
+char is_token_keyword(const char *name)
+{
+        if (is_token(TOKEN_KEYWORD) && token.name == name) {
                 return 1;
         }
         return 0;

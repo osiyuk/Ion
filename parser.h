@@ -16,6 +16,10 @@ Expr *parse_binary(char q);
 Expr *parse_ternary(void);
 Expr *parse_expr(void);
 
+char is_type_modifier();
+Typespec **parse_type_list(void);
+Typespec *parse_basetype(void);
+Typespec *parse_type_modifier(Typespec *base);
 Typespec *parse_type(void);
 
 
@@ -270,6 +274,97 @@ Expr *parse_ternary(void)
 Expr *parse_expr(void)
 {
         return parse_ternary();
+}
+
+
+char is_type_modifier()
+{
+        if (is_token_keyword(const_keyword)
+                || is_token(TOKEN_MUL)
+                || is_token(TOKEN_L_BRACKET)) {
+                        return TRUE;
+        }
+        return FALSE;
+}
+
+
+Typespec **parse_type_list(void)
+{
+        Typespec **list = NULL;
+        buf_init(list);
+        
+        if (is_token(TOKEN_R_PAREN)) {
+                return list;
+        }
+        do {
+                buf_push(list, parse_type());
+        } while (match_token(TOKEN_COMMA));
+        
+        return list;
+}
+
+
+Typespec *parse_basetype(void)
+{
+        Typespec *t;
+        Typespec **args;
+        
+        if (match_token(TOKEN_L_PAREN)) {
+                t = parse_type();
+                expect_token(TOKEN_R_PAREN);
+                return t;
+        }
+        if (is_token(TOKEN_NAME)) {
+                t = new_typespec_name(token.name);
+                next_token();
+                return t;
+        }
+        if (match_keyword(func_keyword)) {
+                expect_token(TOKEN_L_PAREN);
+                args = parse_type_list();
+                expect_token(TOKEN_R_PAREN);
+                t = NULL;
+                if (match_token(TOKEN_COLON)) {
+                        t = parse_type();
+                }
+                return new_typespec_function(args, buf_len(args), t);
+        }
+        
+        syntax_error(unexpected_token, token_info(), "type");
+        return NULL;
+}
+
+
+Typespec *parse_type_modifier(Typespec *base)
+{
+        if (match_keyword(const_keyword)) {
+                return new_typespec_const(base);
+        }
+        if (match_token(TOKEN_MUL)) {
+                return new_typespec_ptr(base);
+        }
+        if (match_token(TOKEN_L_BRACKET)) {
+                Expr *length = NULL;
+                if (!is_token(TOKEN_R_BRACKET)) {
+                        length = parse_expr();
+                }
+                expect_token(TOKEN_R_BRACKET);
+                return new_typespec_array(base, length);
+        }
+        
+        syntax_error(unexpected_token, token_info(), "type modifier");
+        return NULL;
+}
+
+
+Typespec *parse_type(void)
+{
+        Typespec *t = parse_basetype();
+        
+        while (is_type_modifier()) {
+                t = parse_type_modifier(t);
+        }
+        return t;
 }
 
 #endif
