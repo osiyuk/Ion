@@ -5,13 +5,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
-typedef struct {
+struct sbuf {
         size_t len;
         size_t cap;
         char buf[0];
-} Bufhdr;
+};
 
-#define buf__hdr(b) ((Bufhdr *) ((size_t *) b - 2))
+#define BUF_HEADER_SIZE (sizeof(size_t) * 2)
+
+#define buf__hdr(b) ((struct sbuf *) ((size_t *) b - 2))
 #define buf__len(b) ((b) ? buf__hdr(b)->len : 0)
 #define buf__cap(b) ((b) ? buf__hdr(b)->cap : 0)
 #define buf__fits(b, n) buf__len(b) + (n) <= buf__cap(b)
@@ -21,18 +23,20 @@ typedef struct {
 
 #define buf_init(b) buf__fit(b, 4)
 #define buf_len(b) buf__hdr(b)->len
+#define buf_cap(b) buf__hdr(b)->cap
 #define buf_push(b, x) (buf__fit(b, 1), b[buf_len(b)++] = (x))
 #define buf_pop(b) (b[--buf_len(b)])
 #define buf_top(b) (b[buf_len(b) - 1])
 
+
 void *buf_grow(const void *buf, size_t len, size_t elem_size)
 {
         size_t new_cap, new_size;
-        Bufhdr *hdr;
+        struct sbuf *hdr;
         
-        new_cap = buf__cap(buf) ? 2 * buf__cap(buf) : len;
+        new_cap = buf__cap(buf) ? 2 * buf_cap(buf) : len;
         assert(len <= new_cap);
-        new_size = offsetof(Bufhdr, buf) + new_cap * elem_size;
+        new_size = BUF_HEADER_SIZE + new_cap * elem_size;
         
         if (buf) {
                 hdr = realloc(buf__hdr(buf), new_size);
