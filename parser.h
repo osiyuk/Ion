@@ -111,7 +111,7 @@ char is_postfix_op()
         case TOKEN_INC:
         case TOKEN_DEC:
         case TOKEN_L_PAREN:
-        case TOKEN_L_BRACKET:
+        case TOKEN_L_BRACE:
         case TOKEN_DOT:
                 return TRUE;
         default:
@@ -205,9 +205,9 @@ Expr *parse_postfix(Expr *expr)
                 expect_token(TOKEN_NAME);
                 return new_expr_field(expr, name);
         }
-        if (match_token(TOKEN_L_BRACKET)) {
+        if (match_token(TOKEN_L_BRACE)) {
                 Expr *index = parse_expr();
-                expect_token(TOKEN_R_BRACKET);
+                expect_token(TOKEN_R_BRACE);
                 return new_expr_index(expr, index);
         }
         expect_token(TOKEN_L_PAREN);
