@@ -63,8 +63,8 @@ struct Expr {
                 } call;
                 
                 struct {
-                        Expr *lexpr;
-                        Expr *pexpr;
+                        Expr *oexpr;
+                        Expr *iexpr;
                 } index;
                 
                 struct {
@@ -152,11 +152,11 @@ Expr *new_expr_call(Expr *expr, Expr **args, size_t num_args)
 }
 
 
-Expr *new_expr_index(Expr *lexpr, Expr *pexpr)
+Expr *new_expr_index(Expr *oexpr, Expr *iexpr)
 {
         Expr *e = new_expr(EXPR_INDEX);
-        e->index.lexpr = lexpr;
-        e->index.pexpr = pexpr;
+        e->index.oexpr = oexpr;
+        e->index.iexpr = iexpr;
         return e;
 }
 

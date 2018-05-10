@@ -42,9 +42,9 @@ void print_expr(Expr *expr)
                 return;
         case EXPR_INDEX:
                 printf("([] ");
-                print_expr(e.index.lexpr);
+                print_expr(e.index.oexpr);
                 printf(" ");
-                print_expr(e.index.lexpr);
+                print_expr(e.index.iexpr);
                 printf(")");
                 return;
         case EXPR_FIELD:
