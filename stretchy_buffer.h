@@ -1,8 +1,10 @@
 #ifndef STRETCHY_BUFFERS
 #define STRETCHY_BUFFERS
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 
 struct sbuf {
@@ -27,6 +29,7 @@ struct sbuf {
 #define buf_push(b, x) (buf__fit(b, 1), b[buf_len(b)++] = (x))
 #define buf_pop(b) (b[--buf_len(b)])
 #define buf_top(b) (b[buf_len(b) - 1])
+#define buf_end(b) (b + buf_len(b))
 
 
 void *buf_grow(const void *buf, size_t len, size_t elem_size)
@@ -46,6 +49,28 @@ void *buf_grow(const void *buf, size_t len, size_t elem_size)
         }
         hdr->cap = new_cap;
         return hdr->buf;
+}
+
+
+char *buf_printf(char *buf, const char *fmt, ...)
+{
+        va_list args;
+        size_t cap, n;
+        
+        va_start(args, fmt);
+        cap = buf_cap(buf) - buf_len(buf);
+        n = 1 + vsnprintf(NULL, 0, fmt, args);
+        
+        if (n > cap) {
+                buf__fit(buf, n);
+        }
+        
+        va_start(args, fmt);
+        vsnprintf(buf_end(buf), n, fmt, args);
+        va_end(args);
+        
+        buf_len(buf) += n - 1;
+        return buf;
 }
 
 
