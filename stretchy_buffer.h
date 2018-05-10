@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
 
 struct sbuf {
         size_t len;
@@ -74,6 +75,8 @@ char *buf_printf(char *buf, const char *fmt, ...)
 }
 
 
+#define assert_str_cmp(s1, s2) assert(strcmp(s1, s2) == 0)
+
 void buf_test()
 {
         int *ints = NULL;
@@ -85,6 +88,15 @@ void buf_test()
         for (int i = 0; i < (int) buf_len(ints); i++) {
                 assert(ints[i] == i);
         }
+        
+        char *str = NULL;
+        buf_init(str);
+        buf_printf(str, "One:");
+        buf_printf(str, " %d.14", 3);
+        assert_str_cmp(str, "One: 3.14");
+        
+        buf_printf(str, "Hex: 0x%x", 0x7fff);
+        assert_str_cmp(str, "One: 3.14Hex: 0x7fff");
 }
 
 #endif
