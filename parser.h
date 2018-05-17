@@ -131,6 +131,9 @@ char is_binary_op()
 }
 
 
+const int HIGHEST_PRECEDENCE = 0;
+
+
 char op_precedence(TokenKind k)
 {
         assert(TOKEN_MUL <= k);
@@ -240,19 +243,23 @@ Expr *parse_unary(void)
 Expr *parse_binary(char q)
 {
         TokenKind op;
-        Expr *e;
+        Expr *e, *r;
+        char p;
         
         e = parse_unary();
         
         while (is_binary_op()) {
                 op = token.kind;
                 next_token();
-                if (op_precedence(op) > q) {
-                        q = 1 + op_precedence(op);
-                        e = new_expr_binary(op, e, parse_binary(q));
+                p = op_precedence(op);
+                
+                if (q <= p) {
+                        q = p;
+                        e = new_expr_binary(op, e, parse_unary());
                         continue;
                 }
-                e = new_expr_binary(op, e, parse_unary());
+                r = parse_binary(HIGHEST_PRECEDENCE);
+                e->binary.right = new_expr_binary(op, e->binary.right, r);
         }
         return e;
 }
@@ -260,10 +267,10 @@ Expr *parse_binary(char q)
 
 Expr *parse_ternary(void)
 {
-        Expr *e = parse_binary(1);
+        Expr *e = parse_binary(HIGHEST_PRECEDENCE);
         
         if (match_token(TOKEN_QUESTION)) {
-                Expr *then = parse_binary(1);
+                Expr *then = parse_binary(HIGHEST_PRECEDENCE);
                 expect_token(TOKEN_COLON);
                 e = new_expr_ternary(e, then, parse_ternary());
         }
