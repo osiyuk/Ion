@@ -1,12 +1,6 @@
 #ifndef ABSTRACT_SYNTAX_TREE
 #define ABSTRACT_SYNTAX_TREE
 
-#include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "tokens.h"
 
 typedef struct Expr Expr;
 typedef struct Typespec Typespec;

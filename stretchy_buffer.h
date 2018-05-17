@@ -1,12 +1,6 @@
 #ifndef STRETCHY_BUFFERS
 #define STRETCHY_BUFFERS
 
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <string.h>
 
 struct sbuf {
         size_t len;

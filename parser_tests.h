@@ -1,9 +1,6 @@
 #ifndef PARSER_REGRESSION_TESTS
 #define PARSER_REGRESSION_TESTS
 
-#include "error_reporting.h"
-#include "ast_print.h"
-#include "parser.h"
 
 enum {
         NO,

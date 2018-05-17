@@ -1,8 +1,6 @@
 #ifndef ION_TOKENS
 #define ION_TOKENS
 
-#include <assert.h>
-
 
 typedef enum TokenKind TokenKind;
 

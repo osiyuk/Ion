@@ -1,7 +1,5 @@
-#include "stretchy_buffer.h"
-#include "string_interning.h"
-#include "lexer.h"
-#include "parser_tests.h"
+#include "config.h"
+
 
 int main(int argc, char **argv)
 {
@@ -11,3 +9,4 @@ int main(int argc, char **argv)
         parser_test();
         return 0;
 }
+

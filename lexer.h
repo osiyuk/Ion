@@ -1,15 +1,6 @@
 #ifndef ION_LEXING
 #define ION_LEXING
 
-#include <assert.h>
-#include <stdint.h>
-#include <ctype.h>
-#include <stdio.h>
-
-#include "error_reporting.h"
-
-#include "tokens.h"
-#include "keywords.h"
 
 void init_keywords();
 void next_token();

@@ -1,9 +1,6 @@
 #ifndef ION_KEYWORDS
 #define ION_KEYWORDS
 
-#include "stretchy_buffer.h"
-#include "string_interning.h"
-
 
 void init_keywords();
 char is_keyword(const char *);

@@ -1,10 +1,6 @@
 #ifndef ERROR_REPORTING
 #define ERROR_REPORTING
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 
 void error(const char *fmt, ...)
 {

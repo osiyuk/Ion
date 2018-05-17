@@ -1,11 +1,6 @@
 #ifndef STRING_INTERNING
 #define STRING_INTERNING
 
-// https://en.wikipedia.org/wiki/String_interning
-
-#include <assert.h>
-#include <string.h>
-#include "stretchy_buffer.h"
 
 struct row_t {
         size_t len;

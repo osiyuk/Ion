@@ -1,8 +1,6 @@
 #ifndef ION_PARSER
 #define ION_PARSER
 
-#include "ast.h"
-#include "lexer.h"
 
 Expr *parse_operand(void);
 char is_prefix_op();

@@ -1,15 +1,12 @@
 #ifndef AST_PRINT_AUTOMATON
 #define AST_PRINT_AUTOMATON
 
-#include <stdio.h>
-#include "ast.h"
-#include "stretchy_buffer.h"
+
+char use_print_buf, *print_buf;
 
 #define buf_printf(...) (print_buf = buf_printf(print_buf, __VA_ARGS__))
 #define printf(...) \
         use_print_buf ? (void) buf_printf(__VA_ARGS__) : printf(__VA_ARGS__)
-
-char use_print_buf, *print_buf;
 
 
 void print_expr(Expr *expr)
