@@ -12,11 +12,12 @@
 
 #include "tokens.h"
 #include "keywords.h"
-#include "lexer.h"
+#include "lex.h"
 
 #include "ast.h"
 #include "parser.h"
 
 #include "ast_print.h"
+#include "lex_tests.h"
 #include "parser_tests.h"
 
