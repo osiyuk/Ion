@@ -62,6 +62,46 @@ void parser_expression_tests()
 }
 
 
+void parser_typespec_tests()
+{
+        const char *types[] = {
+                "uint64_t",
+                "int const",
+                "char *",
+                "char **",
+                "int[64]",
+                "func()",
+                "func(): void",
+                "func(): int[16]",
+                "(func():int)[16]",
+                "func(int): char *",
+                "func (char *, int, float): char *",
+                "func(uint8_t[3], uint8_t[3]): uint8_t[3]",
+        };
+        const char *ast[] = {
+                "uint64_t",
+                "(const int)",
+                "(ptr char)",
+                "(ptr (ptr char))",
+                "(array int 64)",
+                "(func () void)",
+                "(func () void)",
+                "(func () (array int 16))",
+                "(array (func () int) 16)",
+                "(func (int) (ptr char))",
+                "(func ((ptr char), int, float) (ptr char))",
+                "(func ((array uint8_t 3), (array uint8_t 3)) (array uint8_t 3))",
+        };
+        size_t len = sizeof(types) / sizeof(char *);
+        
+        for (size_t i = 0; i < len; i++) {
+                init_stream(types[i]);
+                print_type(parse_type());
+                test_print_buf(ast[i]);
+        }
+}
+
+
 void parser_test()
 {
         use_print_buf = YES;
@@ -70,6 +110,7 @@ void parser_test()
         init_keywords();
         
         parser_expression_tests();
+        parser_typespec_tests();
         
         use_print_buf = NO;
 }
