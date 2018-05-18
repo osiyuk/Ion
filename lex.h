@@ -11,21 +11,6 @@ char match_token(TokenKind);
 char expect_token(TokenKind);
 
 
-struct Token {
-        TokenKind kind;
-        union {
-                uint64_t int_val;
-                double float_val;
-                const char *str_val;
-                struct {
-                        const char *start;
-                        size_t length;
-                };
-                const char *name;
-        };
-};
-
-
 struct Token token;
 const char *stream;
 

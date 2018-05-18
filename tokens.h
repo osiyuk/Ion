@@ -67,6 +67,21 @@ enum TokenKind {
         TOKEN_OR_ASSIGN,
 };
 
+struct Token {
+        enum TokenKind kind;
+        union {
+                uint64_t int_val;
+                double float_val;
+                const char *str_val;
+                const char *name; // alias for str_val, who cares?
+                
+                struct {
+                        const char *start;
+                        size_t length;
+                };
+        };
+};
+
 
 const char *token_kind_repr[] = {
         [TOKEN_EOF]     = "EOF",
