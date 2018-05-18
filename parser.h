@@ -1,6 +1,8 @@
 #ifndef ION_PARSER
 #define ION_PARSER
 
+#define unexpected_token "Unexpected token %s in %s"
+
 
 Expr *parse_operand(void);
 char is_prefix_op();
@@ -20,8 +22,11 @@ Typespec *parse_basetype(void);
 Typespec *parse_type_modifier(Typespec *base);
 Typespec *parse_type(void);
 
+char is_assign_op();
+Stmt *parse_statement(void);
+StmtList *parse_stmt_list(void);
+SwitchCase *parse_switch_case(void);
 
-#define unexpected_token "Unexpected token %s in %s"
 
 Expr *parse_operand(void)
 {
@@ -370,6 +375,153 @@ Typespec *parse_type(void)
                 t = parse_type_modifier(t);
         }
         return t;
+}
+
+
+char is_assign_op()
+{
+        TokenKind k = token.kind;
+        
+        if (TOKEN_ASSIGN <= k && k <= TOKEN_OR_ASSIGN) {
+                return TRUE;
+        }
+        return FALSE;
+}
+
+
+Stmt *parse_statement(void)
+{
+        Expr *e;
+        Stmt *s;
+        TokenKind op;
+        
+        if (match_keyword(break_keyword)) {
+                return new_stmt_break();
+        }
+        if (match_keyword(continue_keyword)) {
+                return new_stmt_continue();
+        }
+        if (match_keyword(return_keyword)) {
+                e = parse_expr();
+                return new_stmt_return(e);
+        }
+        if (match_keyword(if_keyword)) {
+                expect_token(TOKEN_L_PAREN);
+                e = parse_expr();
+                expect_token(TOKEN_R_PAREN);
+                s = parse_statement();
+                if (!is_token_keyword(else_keyword)) {
+                        return new_stmt_if(e, s, NULL);
+                }
+                match_keyword(else_keyword);
+                return new_stmt_if(e, s, parse_statement());
+        }
+        if (match_keyword(while_keyword)) {
+                expect_token(TOKEN_L_PAREN);
+                e = parse_expr();
+                expect_token(TOKEN_R_PAREN);
+                s = parse_statement();
+                return new_stmt_while(e, s);
+        }
+        if (match_keyword(do_keyword)) {
+                s = parse_statement();
+                if (!is_token_keyword(while_keyword)) {
+                        syntax_error("Expected while keyword");
+                }
+                match_keyword(while_keyword);
+                expect_token(TOKEN_L_PAREN);
+                e = parse_expr();
+                expect_token(TOKEN_R_PAREN);
+                return new_stmt_do_while(s, e);
+        }
+        if (match_keyword(for_keyword)) {
+                StmtList *init, *step;
+                expect_token(TOKEN_L_PAREN);
+                init = parse_stmt_list();
+                expect_token(TOKEN_SEMICOLON);
+                e = parse_expr();
+                expect_token(TOKEN_SEMICOLON);
+                step = parse_stmt_list();
+                expect_token(TOKEN_R_PAREN);
+                s = parse_statement();
+                return new_stmt_for(init, e, step, s);
+        }
+        if (match_keyword(switch_keyword)) {
+                SwitchCase **cases = NULL;
+                expect_token(TOKEN_L_PAREN);
+                e = parse_expr();
+                expect_token(TOKEN_R_PAREN);
+                expect_token(TOKEN_L_BRACKET);
+                while (!is_token(TOKEN_R_BRACKET)) {
+                        buf_push(cases, parse_switch_case());
+                }
+                expect_token(TOKEN_R_BRACKET);
+                if (cases == NULL) {
+                        return new_stmt_switch(e, NULL, 0);
+                }
+                return new_stmt_switch(e, cases, buf_len(cases));
+        }
+        if (match_token(TOKEN_L_BRACKET)) {
+                Stmt **statements = NULL;
+                while (!is_token(TOKEN_R_BRACKET)) {
+                        buf_push(statements, parse_statement());
+                }
+                expect_token(TOKEN_R_BRACKET);
+                if (statements == NULL) {
+                        return new_stmt_block(NULL, 0);
+                }
+                return new_stmt_block(statements, buf_len(statements));
+        }
+        
+        e = parse_expr();
+        if (!is_assign_op()) {
+                return new_stmt_expr(e);
+        }
+        op = token.kind;
+        next_token();
+        s = new_stmt_assign(op, e, parse_expr());
+        while (is_assign_op()) {
+                op = token.kind;
+                next_token();
+                e = s->assign.rvalue->expr;
+                s->assign.rvalue = new_stmt_assign(op, e, parse_expr());
+        }
+        return s;
+}
+
+
+StmtList *parse_stmt_list(void)
+{
+        StmtList *list = new_stmt_list();
+        Stmt **stmts = NULL;
+        buf_init(stmts);
+        
+        do {
+                buf_push(stmts, parse_statement());
+        } while (match_token(TOKEN_COMMA));
+        
+        *list = (StmtList) { stmts, buf_len(stmts) };
+        return list;
+}
+
+
+SwitchCase *parse_switch_case(void)
+{
+        SwitchCase *sc = new_switch_case();
+        
+        sc->expr = NULL;
+        if (    !is_token_keyword(case_keyword) ||
+                !is_token_keyword(default_keyword)) {
+                        syntax_error("Expected case or default keywords");
+        }
+        if (match_keyword(case_keyword)) {
+                sc->expr = parse_expr();
+        } else {
+                match_keyword(default_keyword);
+        }
+        expect_token(TOKEN_COLON);
+        sc->stmt = parse_statement();
+        return sc;
 }
 
 #endif
