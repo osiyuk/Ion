@@ -115,7 +115,7 @@ void print_type(Typespec *type)
         case TYPESPEC_FUNCTION:
                 printf("(func (");
                 for (size_t i = 0; i < t.func.num_args; i++) {
-                        printf(" ");
+                        if (i) printf(", ");
                         print_type(t.func.args[i]);
                 }
                 printf(") ");
