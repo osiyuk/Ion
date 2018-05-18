@@ -3,7 +3,11 @@
 
 
 typedef struct Expr Expr;
+typedef struct Stmt Stmt;
 typedef struct Typespec Typespec;
+
+typedef struct StmtList StmtList;
+typedef struct SwitchCase SwitchCase;
 
 
 void *ast_alloc(size_t size)
@@ -305,6 +309,170 @@ Typespec *new_typespec_function(
         t->func.ret = ret;
         return t;
 }
+
+
+enum StmtKind {
+        STMT_NONE,
+        STMT_BREAK,
+        STMT_CONTINUE,
+        STMT_RETURN,
+        STMT_IF,
+        STMT_WHILE,
+        STMT_DO_WHILE,
+        STMT_FOR,
+        STMT_SWITCH,
+        STMT_BLOCK,
+        STMT_EXPR,
+        STMT_ASSIGN,
+};
+
+struct Stmt {
+        enum StmtKind kind;
+        union {
+                Expr *expr;
+                
+                struct {
+                        Expr *cond;
+                        Stmt *body;
+                        Stmt *other;
+                } if_stmt;
+                
+                struct {
+                        Expr *cond;
+                        Stmt *body;
+                } while_stmt;
+                
+                struct {
+                        StmtList *init;
+                        Expr *cond;
+                        StmtList *step;
+                        Stmt *body;
+                } for_stmt;
+                
+                struct {
+                        Expr *expr;
+                        SwitchCase **cases;
+                        size_t num_cases;
+                } switch_stmt;
+                
+                struct {
+                        Stmt **stmt;
+                        size_t num_stmt;
+                } block;
+                
+                struct {
+                        TokenKind op;
+                        Expr *lvalue;
+                        Expr *rvalue;
+                } assign;
+        };
+};
+
+struct StmtList {
+        Stmt **stmt;
+        size_t num_stmt;
+};
+
+struct SwitchCase {
+        Expr *expr;
+        Stmt *stmt;
+};
+
+
+Stmt *new_stmt(enum StmtKind kind)
+{
+        Stmt *s = ast_alloc(sizeof(Stmt));
+        s->kind = kind;
+        return s;
+}
+
+
+#define new_stmt_break() new_stmt(STMT_BREAK)
+#define new_stmt_continue() new_stmt(STMT_CONTINUE)
+
+
+Stmt *new_stmt_return(Expr *expr)
+{
+        Stmt *s = new_stmt(STMT_RETURN);
+        s->expr = expr;
+        return s;
+}
+
+
+Stmt *new_stmt_if(Expr *cond, Stmt *body, Stmt *other)
+{
+        Stmt *s = new_stmt(STMT_IF);
+        s->if_stmt.cond = cond;
+        s->if_stmt.body = body;
+        s->if_stmt.other = other;
+        return s;
+}
+
+
+Stmt *new_stmt_while(Expr *cond, Stmt *body)
+{
+        Stmt *s = new_stmt(STMT_WHILE);
+        s->while_stmt.cond = cond;
+        s->while_stmt.body = body;
+        return s;
+}
+
+
+Stmt *new_stmt_do_while(Stmt *body, Expr *cond)
+{
+        Stmt *s = new_stmt_while(cond, body);
+        s->kind = STMT_DO_WHILE;
+        return s;
+}
+
+
+Stmt *new_stmt_for(StmtList *init, Expr *cond, StmtList *step, Stmt *body)
+{
+        Stmt *s = new_stmt(STMT_FOR);
+        s->for_stmt.init = init;
+        s->for_stmt.cond = cond;
+        s->for_stmt.step = step;
+        s->for_stmt.body = body;
+        return s;
+}
+
+
+Stmt *new_stmt_switch(Expr *expr, SwitchCase **cases, size_t num_cases)
+{
+        Stmt *s = new_stmt(STMT_SWITCH);
+        s->switch_stmt.expr = expr;
+        s->switch_stmt.cases = cases;
+        s->switch_stmt.num_cases = num_cases;
+        return s;
+}
+
+
+Stmt *new_stmt_block(Stmt **stmt, size_t num_stmt)
+{
+        Stmt *s = new_stmt(STMT_BLOCK);
+        s->block.stmt = stmt;
+        s->block.num_stmt = num_stmt;
+        return s;
+}
+
+
+Stmt *new_stmt_expr(Expr *expr)
+{
+        Stmt *s = new_stmt(STMT_EXPR);
+        s->expr = expr;
+        return s;
+}
+
+
+Stmt *new_stmt_assign(TokenKind op, Expr *lvalue, Expr *rvalue)
+{
+        Stmt *s = new_stmt(STMT_ASSIGN);
+        s->assign.op = op;
+        s->assign.lvalue = lvalue;
+        s->assign.rvalue = rvalue;
+        return s;
+}
+
 
 #endif
 
