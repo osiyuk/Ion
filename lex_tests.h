@@ -4,7 +4,7 @@
 #define assert_token(kind) assert(match_token(kind))
 #define assert_token_int(x) assert(token.int_val == (x) && match_token(TOKEN_INT))
 #define assert_token_float(x) assert(token.float_val == (x) && match_token(TOKEN_FLOAT))
-#define assert_token_empty_str() assert(token.str_val == NULL && match_token(TOKEN_STR))
+#define assert_token_empty_str() assert(strlen(token.str_val) == 0 && match_token(TOKEN_STR))
 #define assert_token_str(x) assert(strcmp(token.str_val, (x)) == 0 && match_token(TOKEN_STR))
 #define assert_token_name(x) assert(strcmp(token.name, (x)) == 0 && match_token(TOKEN_NAME))
 #define assert_token_keyword(x) assert(token.name == (x) && match_token(TOKEN_KEYWORD))
@@ -43,7 +43,8 @@ void lex_float_literal_tests()
 
 void lex_string_literal_tests()
 {
-        init_stream("\"typedef\" \"enum\" \"struct\"");
+        init_stream("\"\" \"typedef\" \"enum\" \"struct\"");
+        assert_token_empty_str();
         assert_token_str("typedef");
         assert_token_str("enum");
         assert_token_str("struct");
