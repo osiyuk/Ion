@@ -284,9 +284,9 @@ Expr *parse_expr(void)
 
 char is_type_modifier()
 {
-        if (is_token_keyword(const_keyword)
-                || is_token(TOKEN_MUL)
-                || is_token(TOKEN_L_BRACKET)) {
+        if (is_token_keyword(const_keyword) ||
+                is_token(TOKEN_MUL) ||
+                is_token(TOKEN_L_BRACE)) {
                         return TRUE;
         }
         return FALSE;
@@ -348,12 +348,12 @@ Typespec *parse_type_modifier(Typespec *base)
         if (match_token(TOKEN_MUL)) {
                 return new_typespec_ptr(base);
         }
-        if (match_token(TOKEN_L_BRACKET)) {
+        if (match_token(TOKEN_L_BRACE)) {
                 Expr *length = NULL;
-                if (!is_token(TOKEN_R_BRACKET)) {
+                if (!is_token(TOKEN_R_BRACE)) {
                         length = parse_expr();
                 }
-                expect_token(TOKEN_R_BRACKET);
+                expect_token(TOKEN_R_BRACE);
                 return new_typespec_array(base, length);
         }
         
