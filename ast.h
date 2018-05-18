@@ -287,7 +287,7 @@ Typespec *new_typespec_ptr(Typespec *base)
 
 Typespec *new_typespec_array(Typespec *base, Expr *length)
 {
-        Typespec *t = new_typespec(TYPESPEC_CONST);
+        Typespec *t = new_typespec(TYPESPEC_ARRAY);
         t->array.base = base;
         t->array.length = length;
         return t;
