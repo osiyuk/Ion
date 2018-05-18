@@ -363,7 +363,7 @@ struct Stmt {
                 struct {
                         TokenKind op;
                         Expr *lvalue;
-                        Expr *rvalue;
+                        Stmt *rvalue;
                 } assign;
         };
 };
@@ -384,6 +384,16 @@ Stmt *new_stmt(enum StmtKind kind)
         Stmt *s = ast_alloc(sizeof(Stmt));
         s->kind = kind;
         return s;
+}
+
+StmtList *new_stmt_list()
+{
+        return ast_alloc(sizeof(StmtList));
+}
+
+SwitchCase *new_switch_case()
+{
+        return ast_alloc(sizeof(SwitchCase));
 }
 
 
@@ -469,7 +479,7 @@ Stmt *new_stmt_assign(TokenKind op, Expr *lvalue, Expr *rvalue)
         Stmt *s = new_stmt(STMT_ASSIGN);
         s->assign.op = op;
         s->assign.lvalue = lvalue;
-        s->assign.rvalue = rvalue;
+        s->assign.rvalue = new_stmt_expr(rvalue);
         return s;
 }
 
