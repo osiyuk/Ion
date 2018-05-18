@@ -86,6 +86,48 @@ void print_expr(Expr *expr)
         }
 }
 
+
+void print_type(Typespec *type)
+{
+        const Typespec t = *type;
+        
+        switch (type->kind) {
+        case TYPESPEC_NAME:
+                printf(type->name);
+                return;
+        case TYPESPEC_CONST:
+                printf("(const ");
+                print_type(type->base);
+                printf(")");
+                return;
+        case TYPESPEC_PTR:
+                printf("(ptr ");
+                print_type(type->base);
+                printf(")");
+                return;
+        case TYPESPEC_ARRAY:
+                printf("(array ");
+                print_type(t.array.base);
+                printf(" ");
+                print_expr(t.array.length);
+                printf(")");
+                return;
+        case TYPESPEC_FUNCTION:
+                printf("(func (");
+                for (size_t i = 0; i < t.func.num_args; i++) {
+                        printf(" ");
+                        print_type(t.func.args[i]);
+                }
+                printf(") ");
+                if (t.func.ret) print_type(t.func.ret);
+                else printf("void");
+                printf(")");
+                return;
+        default:
+                assert(TYPESPEC_NONE);
+        }
+}
+
 #undef printf
 #endif
 
