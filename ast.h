@@ -248,7 +248,7 @@ struct Typespec {
                         Typespec **args;
                         size_t num_args;
                         Typespec *ret;
-                } function;
+                } func;
         };
 };
 
@@ -300,9 +300,9 @@ Typespec *new_typespec_function(
         Typespec *ret
 ) {
         Typespec *t = new_typespec(TYPESPEC_FUNCTION);
-        t->function.args = args;
-        t->function.num_args = num_args;
-        t->function.ret = ret;
+        t->func.args = args;
+        t->func.num_args = num_args;
+        t->func.ret = ret;
         return t;
 }
 
