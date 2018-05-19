@@ -477,6 +477,9 @@ Stmt *parse_statement(void)
                 }
                 return new_stmt_block(statements, buf_len(statements));
         }
+        if (match_token(TOKEN_SEMICOLON)) {
+                return new_stmt_block(NULL, 0);
+        }
         
         e = parse_expr();
         if (!is_assign_op()) {

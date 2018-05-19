@@ -112,6 +112,7 @@ void parser_statement_tests()
                 "if (cond) print()",
                 "if (cond) print() else sneak()",
                 "while (compute()) {}",
+                "while (compute()) ;",
                 "while (cond) { print(hello); cond-- }"
                 "do { sneak() } while (!cond)",
                 "for (;;) sneak()",
@@ -123,6 +124,7 @@ void parser_statement_tests()
                 "(return)",
                 "(if cond (call print))",
                 "(if cond (call print) else (call sneak))",
+                "(while (call compute) (block nil))",
                 "(while (call compute) (block nil))",
                 "(while cond (block (call print hello) (-- cond)))",
         };
