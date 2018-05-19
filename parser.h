@@ -477,8 +477,7 @@ Stmt *parse_statement(void)
                 Stmt **statements = NULL;
                 while (!is_token(TOKEN_R_BRACKET)) {
                         buf_push(statements, parse_statement());
-                        if (is_token(TOKEN_SEMICOLON))
-                                next_token();
+                        match_token(TOKEN_SEMICOLON);
                 }
                 expect_token(TOKEN_R_BRACKET);
                 if (statements == NULL) {
@@ -525,9 +524,10 @@ StmtList *parse_stmt_list(void)
 SwitchCase *parse_switch_case(void)
 {
         SwitchCase *sc = new_switch_case();
+        Stmt **stmts = NULL;
         
         sc->expr = NULL;
-        if (    !is_token_keyword(case_keyword) ||
+        if (    !is_token_keyword(case_keyword) &&
                 !is_token_keyword(default_keyword)) {
                         syntax_error("Expected case or default keywords");
         }
@@ -537,7 +537,22 @@ SwitchCase *parse_switch_case(void)
                 match_keyword(default_keyword);
         }
         expect_token(TOKEN_COLON);
-        sc->stmt = parse_statement();
+        
+        while ( !is_token_keyword(case_keyword) &&
+                !is_token_keyword(default_keyword) &&
+                !is_token(TOKEN_R_BRACKET)) {
+                        buf_push(stmts, parse_statement());
+                        match_token(TOKEN_SEMICOLON);
+        }
+        if (stmts == NULL) {
+                sc->stmt = NULL;
+                return sc;
+        }
+        if (buf_len(stmts) == 1) {
+                sc->stmt = stmts[0];
+        } else {
+                sc->stmt = new_stmt_block(stmts, buf_len(stmts));
+        }
         return sc;
 }
 

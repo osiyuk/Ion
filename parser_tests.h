@@ -116,7 +116,11 @@ void parser_statement_tests()
                 "while (cond) { print(hello); cond-- }",
                 "do { sneak() } while (!cond)",
                 "for (;;) sneak()",
+                "for (; cond;) { print(); break; }",
                 "for (i := 0; i < len; i++) printf(\"step \", i)",
+                "switch (token.kind) { case NONE: break; " // 1
+                "case TOK: printf(token.name); break; " // 2
+                "default: printf(\"error\") }", // 3
         };
         const char *ast[] = {
                 "(break)",
@@ -130,7 +134,11 @@ void parser_statement_tests()
                 "(while cond (block (call print hello) (-- cond)))",
                 "(do (block (call sneak)) while (! cond))",
                 "(for () () () (call sneak))",
+                "(for () cond () (block (call print) (break)))",
                 "(for (:= i 0) (< i len) (++ i) (call printf \"step \" i))",
+                "(switch (. token kind) (case NONE (break)) " // 1
+                "(case TOK (block (call printf (. token name)) " // 2
+                "(break))) (default (call printf \"error\")))", // 3
         };
         size_t len = sizeof(ast) / sizeof(char *);
         
