@@ -440,11 +440,20 @@ Stmt *parse_statement(void)
         if (match_keyword(for_keyword)) {
                 StmtList *init, *step;
                 expect_token(TOKEN_L_PAREN);
-                init = parse_stmt_list();
+                init = NULL;
+                if (!is_token(TOKEN_SEMICOLON)) {
+                        init = parse_stmt_list();
+                }
                 expect_token(TOKEN_SEMICOLON);
-                e = parse_expr();
+                e = NULL;
+                if (!is_token(TOKEN_SEMICOLON)) {
+                        e = parse_expr();
+                }
                 expect_token(TOKEN_SEMICOLON);
-                step = parse_stmt_list();
+                step = NULL;
+                if (!is_token(TOKEN_R_PAREN)) {
+                        step = parse_stmt_list();
+                }
                 expect_token(TOKEN_R_PAREN);
                 s = parse_statement();
                 return new_stmt_for(init, e, step, s);

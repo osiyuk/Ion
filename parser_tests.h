@@ -113,7 +113,7 @@ void parser_statement_tests()
                 "if (cond) print() else sneak()",
                 "while (compute()) {}",
                 "while (compute()) ;",
-                "while (cond) { print(hello); cond-- }"
+                "while (cond) { print(hello); cond-- }",
                 "do { sneak() } while (!cond)",
                 "for (;;) sneak()",
         };
@@ -127,6 +127,8 @@ void parser_statement_tests()
                 "(while (call compute) (block nil))",
                 "(while (call compute) (block nil))",
                 "(while cond (block (call print hello) (-- cond)))",
+                "(do (block (call sneak)) while (! cond))",
+                "(for () () () (call sneak))",
         };
         size_t len = sizeof(ast) / sizeof(char *);
         
