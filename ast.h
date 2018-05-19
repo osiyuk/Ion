@@ -474,12 +474,12 @@ Stmt *new_stmt_expr(Expr *expr)
 }
 
 
-Stmt *new_stmt_assign(TokenKind op, Expr *lvalue, Expr *rvalue)
+Stmt *new_stmt_assign(TokenKind op, Expr *lvalue, Stmt *rvalue)
 {
         Stmt *s = new_stmt(STMT_ASSIGN);
         s->assign.op = op;
         s->assign.lvalue = lvalue;
-        s->assign.rvalue = new_stmt_expr(rvalue);
+        s->assign.rvalue = rvalue;
         return s;
 }
 

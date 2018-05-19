@@ -121,6 +121,9 @@ void parser_statement_tests()
                 "switch (token.kind) { case NONE: break; " // 1
                 "case TOK: printf(token.name); break; " // 2
                 "default: printf(\"error\") }", // 3
+                "{}",
+                "{ t := a; a = b; b = t }",
+                "a = b = c = x",
         };
         const char *ast[] = {
                 "(break)",
@@ -139,6 +142,9 @@ void parser_statement_tests()
                 "(switch (. token kind) (case NONE (break)) " // 1
                 "(case TOK (block (call printf (. token name)) " // 2
                 "(break))) (default (call printf \"error\")))", // 3
+                "(block nil)",
+                "(block (:= t a) (= a b) (= b t))",
+                "(= a (= b (= c x)))",
         };
         size_t len = sizeof(ast) / sizeof(char *);
         

@@ -495,14 +495,7 @@ Stmt *parse_statement(void)
         }
         op = token.kind;
         next_token();
-        s = new_stmt_assign(op, e, parse_expr());
-        while (is_assign_op()) {
-                op = token.kind;
-                next_token();
-                e = s->assign.rvalue->expr;
-                s->assign.rvalue = new_stmt_assign(op, e, parse_expr());
-        }
-        return s;
+        return new_stmt_assign(op, e, parse_statement());
 }
 
 
