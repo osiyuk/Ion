@@ -79,7 +79,7 @@ sizeof_type:
                 return new_expr_cast(t, e);
         }
         
-        syntax_error(unexpected_token, token_info(), "expression");
+        syntax_error(unexpected_token, token_info(), "operand");
         return NULL;
 }
 
@@ -402,6 +402,9 @@ Stmt *parse_statement(void)
                 return new_stmt_continue();
         }
         if (match_keyword(return_keyword)) {
+                if (is_token(TOKEN_SEMICOLON)) {
+                        return new_stmt_return(NULL);
+                }
                 e = parse_expr();
                 return new_stmt_return(e);
         }
@@ -465,6 +468,8 @@ Stmt *parse_statement(void)
                 Stmt **statements = NULL;
                 while (!is_token(TOKEN_R_BRACKET)) {
                         buf_push(statements, parse_statement());
+                        if (is_token(TOKEN_SEMICOLON))
+                                next_token();
                 }
                 expect_token(TOKEN_R_BRACKET);
                 if (statements == NULL) {
