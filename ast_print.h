@@ -29,7 +29,7 @@ void print_expr(Expr *expr)
         case EXPR_CAST:
                 assert(EXPR_CAST);
         case EXPR_CALL:
-                printf("(");
+                printf("(call ");
                 print_expr(e.call.expr);
                 for (size_t i = 0; i < e.call.num_args; i++) {
                         printf(" ");

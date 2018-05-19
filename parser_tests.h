@@ -50,7 +50,7 @@ void parser_expression_tests()
                 "(== (& a b) 0)",
                 "(|| (== a b) (== c d))",
                 "(- (. max x) (. min x))",
-                "(* n (fact_rec (- n 1)))",
+                "(* n (call fact_rec (- n 1)))",
         };
         size_t len = sizeof(expressions) / sizeof(char *);
         
