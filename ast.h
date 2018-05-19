@@ -4,6 +4,7 @@
 
 typedef struct Expr Expr;
 typedef struct Stmt Stmt;
+typedef struct Decl Decl;
 typedef struct Typespec Typespec;
 
 typedef struct StmtList StmtList;
@@ -483,6 +484,142 @@ Stmt *new_stmt_assign(TokenKind op, Expr *lvalue, Stmt *rvalue)
         return s;
 }
 
+
+enum DeclKind {
+        DECL_NONE,
+        DECL_TYPEDEF,
+        DECL_ENUM,
+        DECL_STRUCT,
+        DECL_UNION,
+        DECL_CONST,
+        DECL_VAR,
+        DECL_FUNC,
+};
+
+struct Decl {
+        enum DeclKind kind;
+        const char *name;
+        union {
+                struct {
+                        Typespec *type;
+                } typedef_decl;
+                
+                struct {
+                        const char **names;
+                        Expr **init_exprs;
+                        size_t num_names;
+                } enum_decl;
+                
+                struct {
+                        const char **names;
+                        Typespec **types;
+                        size_t num_names;
+                } aggregate;
+                
+                struct {
+                        Typespec *type;
+                        Expr *expr;
+                } var;
+                
+                struct {
+                        const char **params;
+                        size_t num_params;
+                        Typespec *type;
+                        StmtList *body;
+                } func;
+        };
+};
+
+
+Decl *new_decl(enum DeclKind kind, const char *name)
+{
+        Decl *d = ast_alloc(sizeof(Decl));
+        d->kind = kind;
+        d->name = name;
+        return d;
+}
+
+
+Decl *new_decl_typedef(const char *name, Typespec *type)
+{
+        Decl *d = new_decl(DECL_TYPEDEF, name);
+        d->typedef_decl.type = type;
+        return d;
+}
+
+
+Decl *new_decl_enum(
+        const char *name,
+        const char **names,
+        Expr **init_exprs,
+        size_t num_names
+) {
+        Decl *d = new_decl(DECL_ENUM, name);
+        d->enum_decl.names = names;
+        d->enum_decl.init_exprs = init_exprs;
+        d->enum_decl.num_names = num_names;
+        return d;
+}
+
+
+Decl *new_decl_struct(
+        const char *name,
+        const char **names,
+        Typespec **types,
+        size_t num_names
+) {
+        Decl *d = new_decl(DECL_STRUCT, name);
+        d->aggregate.names = names;
+        d->aggregate.types = types;
+        d->aggregate.num_names = num_names;
+        return d;
+}
+
+
+Decl *new_decl_union(
+        const char *name,
+        const char **names,
+        Typespec **types,
+        size_t num_names
+) {
+        Decl *d = new_decl_struct(name, names, types, num_names);
+        d->kind = DECL_UNION;
+        return d;
+}
+
+
+Decl *new_decl_const(const char *name, Typespec *type, Expr *expr)
+{
+        Decl *d = new_decl(DECL_CONST, name);
+        d->var.type = type;
+        d->var.expr = expr;
+        return d;
+}
+
+
+Decl *new_decl_var(const char *name, Typespec *type, Expr *expr)
+{
+        Decl *d = new_decl_const(name, type, expr);
+        d->kind = DECL_VAR;
+        return d;
+}
+
+
+Decl *new_decl_func(
+        const char *name,
+        const char **params,
+        size_t num_params,
+        Typespec *type,
+        StmtList *body
+) {
+        Decl *d = new_decl(DECL_FUNC, name);
+        d->func.params = params;
+        d->func.num_params = num_params;
+        assert(type->kind = TYPESPEC_FUNCTION);
+        d->func.type = type;
+        d->func.body = body;
+        return d;
+}
 
 #endif
 
