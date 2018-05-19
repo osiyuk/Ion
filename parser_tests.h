@@ -102,6 +102,38 @@ void parser_typespec_tests()
 }
 
 
+void parser_statement_tests()
+{
+        const char *statements[] = {
+                "break",
+                "continue",
+                "return 13",
+                "return;",
+                "if (cond) print()",
+                "if (cond) print() else sneak()",
+                "while (cond) { print(hello); cond-- }"
+                "do { sneak() } while (!cond)",
+                "for (;;) sneak()",
+        };
+        const char *ast[] = {
+                "(break)",
+                "(continue)",
+                "(return 13)",
+                "(return)",
+                "(if cond (call print))",
+                "(if cond (call print) else (call sneak))",
+                "(while cond (block (call print hello) (-- cond)))",
+        };
+        size_t len = sizeof(ast) / sizeof(char *);
+        
+        for (size_t i = 0; i < len; i++) {
+                init_stream(statements[i]);
+                print_stmt(parse_statement());
+                test_print_buf(ast[i]);
+        }
+}
+
+
 void parser_test()
 {
         use_print_buf = YES;
@@ -111,6 +143,7 @@ void parser_test()
         
         parser_expression_tests();
         parser_typespec_tests();
+        parser_statement_tests();
         
         use_print_buf = NO;
 }
