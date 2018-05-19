@@ -167,9 +167,9 @@ void print_stmt(Stmt *stmt)
                 printf(")");
                 return;
         case STMT_DO_WHILE:
-                printf("(do_while ");
+                printf("(do ");
                 print_stmt(s.while_stmt.body);
-                printf(" ");
+                printf(" while ");
                 print_expr(s.while_stmt.cond);
                 printf(")");
                 return;
