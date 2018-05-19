@@ -221,6 +221,10 @@ void print_stmt(Stmt *stmt)
                 return;
         case STMT_BLOCK:
                 printf("(block");
+                if (s.block.num_stmt == 0) {
+                        printf(" nil)");
+                        return;
+                }
                 for (size_t i = 0; i < s.block.num_stmt; i++) {
                         printf(" ");
                         print_stmt(s.block.stmt[i]);
