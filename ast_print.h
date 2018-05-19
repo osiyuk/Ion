@@ -174,27 +174,33 @@ void print_stmt(Stmt *stmt)
                 printf(")");
                 return;
         case STMT_FOR:
-                printf("(for (");
+                printf("(for ");
                 if (s.for_stmt.init) {
                         StmtList *init = s.for_stmt.init;
                         for (size_t i = 0; i < init->num_stmt; i++) {
-                                printf(", ");
+                                if (i) printf(", ");
                                 print_stmt(init->stmt[i]);
                         }
+                } else {
+                        printf("()");
                 }
-                printf(") (");
+                printf(" ");
                 if (s.for_stmt.cond) {
                         print_expr(s.for_stmt.cond);
+                } else {
+                        printf("()");
                 }
-                printf(") (");
+                printf(" ");
                 if (s.for_stmt.step) {
                         StmtList *step = s.for_stmt.step;
                         for (size_t i = 0; i < step->num_stmt; i++) {
-                                printf(", ");
+                                if (i) printf(", ");
                                 print_stmt(step->stmt[i]);
                         }
+                } else {
+                        printf("()");
                 }
-                printf(") ");
+                printf(" ");
                 print_stmt(s.for_stmt.body);
                 printf(")");
                 return;

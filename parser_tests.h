@@ -116,6 +116,7 @@ void parser_statement_tests()
                 "while (cond) { print(hello); cond-- }",
                 "do { sneak() } while (!cond)",
                 "for (;;) sneak()",
+                "for (i := 0; i < len; i++) printf(\"step \", i)",
         };
         const char *ast[] = {
                 "(break)",
@@ -129,6 +130,7 @@ void parser_statement_tests()
                 "(while cond (block (call print hello) (-- cond)))",
                 "(do (block (call sneak)) while (! cond))",
                 "(for () () () (call sneak))",
+                "(for (:= i 0) (< i len) (++ i) (call printf \"step \" i))",
         };
         size_t len = sizeof(ast) / sizeof(char *);
         
