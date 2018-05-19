@@ -207,7 +207,6 @@ void print_stmt(Stmt *stmt)
         case STMT_SWITCH:
                 printf("(switch ");
                 print_expr(s.switch_stmt.expr);
-                printf(" ");
                 for (size_t i = 0; i < s.switch_stmt.num_cases; i++) {
                         SwitchCase *sc = s.switch_stmt.cases[i];
                         printf(" ");
