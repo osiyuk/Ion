@@ -160,9 +160,28 @@ void parser_declaration_tests()
 {
         const char *declarations[] = {
                 "typedef ptr = void *",
+                "enum e { A = 0, B, C }",
+                "struct S { i: int; j:int; t: T* }",
+                "union T { int_val: int; float_val: double; str_val: char const * }",
+                "const MAX_EXPRS = 1024",
+                "var i = 0",
+                "var j: int",
+                "var len: size_t = MAX_EXPRS",
+                "func chill_out() {}",
+                "func zero_vector(): Vector { return vector(0, 0) }",
+                "func make_rect(min: Vector, max: Vector): Rect {" // 1
+                "{ return rect(max.x - min.x, max.y - min.y) }" // 2
         };
         const char *ast[] = {
                 "(typedef ptr (ptr void))",
+                "(enum e (A 0) B C)",
+                "(struct S (i int) (j int) (t (ptr T)))",
+                "(union T (int_val int) (float_val double) (str_val (ptr (const char))))",
+                "(const MAX_EXPRS 1024)",
+                "(var i () 0)",
+                "(var j (int))",
+                "(var len (size_t) MAX_EXPRS)",
+                "(func chill_out () void (block nil))",
         };
         size_t len = sizeof(ast) / sizeof(char *);
         

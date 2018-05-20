@@ -623,7 +623,11 @@ Decl *parse_declaration(void)
                 expr = parse_expr();
                 return new_decl_var(name, type, expr);
         }
-        return parse_func_decl();
+        if (match_keyword(func_keyword)) {
+                return parse_func_decl();
+        }
+        syntax_error("Expected declaration got %s", token_info());
+        return NULL;
 }
 
 
@@ -666,13 +670,10 @@ Decl *parse_func_decl(void)
         StmtList *body;
         size_t num_args;
         
-        if (!match_keyword(func_keyword)) {
-                syntax_error("Expected declaration got %s", token_info());
-        }
         name = token.name;
         expect_token(TOKEN_NAME);
-        expect_token(TOKEN_L_BRACE);
-        while (!is_token(TOKEN_R_BRACE)) {
+        expect_token(TOKEN_L_PAREN);
+        while (!is_token(TOKEN_R_PAREN)) {
                 if (!is_token(TOKEN_NAME)) {
                         syntax_error("Expect function param name");
                 }
@@ -683,7 +684,7 @@ Decl *parse_func_decl(void)
                 if (!match_token(TOKEN_COMMA))
                         break;
         }
-        expect_token(TOKEN_R_BRACE);
+        expect_token(TOKEN_R_PAREN);
         ret = NULL;
         if (match_token(TOKEN_COLON)) {
                 ret = parse_type();
