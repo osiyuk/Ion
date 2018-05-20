@@ -251,6 +251,80 @@ void print_stmt(Stmt *stmt)
         }
 }
 
+
+void print_decl(Decl *decl)
+{
+        const Decl d = *decl;
+        
+        switch (decl->kind) {
+        case DECL_TYPEDEF:
+                printf("(typedef %s ", decl->name);
+                print_type(d.typedef_decl.type);
+                printf(")");
+                return;
+        case DECL_ENUM:
+                printf("(enum %s ", decl->name);
+                for (size_t i = 0; i < d.enum_decl.num_names; i++) {
+                        const char *name = d.enum_decl.names[i];
+                        Expr *init_expr = d.enum_decl.init_exprs[i];
+                        
+                        if (i) printf(" ");
+                        if (init_expr) {
+                                printf("(%s ", name);
+                                print_expr(init_expr);
+                                printf(")");
+                        } else {
+                                printf(name);
+                        }
+                }
+                printf(")");
+                return;
+        case DECL_STRUCT:
+                printf("(struct %s ", decl->name);
+                goto aggregate;
+        case DECL_UNION:
+                printf("(union %s ", decl->name);
+aggregate:
+                for (size_t i = 0; i < d.aggregate.num_names; i++) {
+                        const char *name = d.aggregate.names[i];
+                        Typespec *type = d.aggregate.types[i];
+                        
+                        if (i) printf(" ");
+                        printf("(%s ", name);
+                        print_type(type);
+                        printf(")");
+                }
+                printf(")");
+                return;
+        case DECL_CONST:
+                printf("(const %s ", decl->name);
+                print_expr(d.var.expr);
+                printf(")");
+                return;
+        case DECL_VAR:
+                printf("(var %s (", decl->name);
+                if (d.var.type) print_type(d.var.type);
+                printf(")");
+                if (d.var.expr) {
+                        printf(" ");
+                        print_expr(d.var.expr);
+                }
+                printf(")");
+                return;
+        case DECL_FUNC:
+                printf("(func %s (", decl->name);
+                for (size_t i = 0; i < d.func.num_params; i++) {
+                        // params
+                }
+                printf(") ");
+                print_type(d.func.type);
+                printf(")");
+                return;
+        default:
+                assert(DECL_NONE);
+        }
+}
+
 #undef printf
 #endif
 
