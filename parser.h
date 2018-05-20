@@ -662,13 +662,11 @@ Decl *parse_enum_decl(void)
 Decl *parse_func_decl(void)
 {
         const char *name;
-        const char **params = NULL;
-        Typespec **args = NULL;
-        Typespec *ret;
-        Typespec *type;
+        FuncDecl *decl = NULL;
         Stmt **stmt = NULL;
         StmtList *body;
-        size_t num_args;
+        
+        decl = new_func_decl();
         
         name = token.name;
         expect_token(TOKEN_NAME);
@@ -677,29 +675,29 @@ Decl *parse_func_decl(void)
                 if (!is_token(TOKEN_NAME)) {
                         syntax_error("Expect function param name");
                 }
-                buf_push(params, token.name);
+                buf_push(decl->args, token.name);
                 expect_token(TOKEN_NAME);
                 expect_token(TOKEN_COLON);
-                buf_push(args, parse_type());
+                buf_push(decl->types, parse_type());
                 if (!match_token(TOKEN_COMMA))
                         break;
         }
         expect_token(TOKEN_R_PAREN);
-        ret = NULL;
-        if (match_token(TOKEN_COLON)) {
-                ret = parse_type();
+        if (decl->args) {
+                decl->num_args = buf_len(decl->args);
+                assert(buf_len(decl->types) == decl->num_args);
         }
-        if (args) {
-                assert(params && buf_len(params) == buf_len(args));
-                type = new_typespec_function(args, buf_len(args), ret);
-        } else {
-                type = new_typespec_function(NULL, 0, ret);
+        
+        decl->ret = NULL;
+        if (match_token(TOKEN_COLON)) {
+                decl->ret = parse_type();
         }
         expect_token(TOKEN_L_BRACKET);
         while (!is_token(TOKEN_R_BRACKET)) {
                 buf_push(stmt, parse_statement());
                 match_token(TOKEN_SEMICOLON);
         }
+        expect_token(TOKEN_R_BRACKET);
         body = new_stmt_list();
         if (stmt) {
                 body->stmt = stmt;
@@ -708,9 +706,7 @@ Decl *parse_func_decl(void)
                 body->stmt = NULL;
                 body->num_stmt = 0;
         }
-        expect_token(TOKEN_R_BRACKET);
-        num_args = args ? buf_len(args) : 0;
-        return new_decl_func(name, params, num_args, type, body);
+        return new_decl_func(name, decl, body);
 }
 
 

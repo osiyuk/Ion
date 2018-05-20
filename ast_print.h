@@ -255,6 +255,7 @@ void print_stmt(Stmt *stmt)
 void print_decl(Decl *decl)
 {
         const Decl d = *decl;
+        const FuncDecl *f;
         
         switch (decl->kind) {
         case DECL_TYPEDEF:
@@ -313,11 +314,13 @@ aggregate:
                 return;
         case DECL_FUNC:
                 printf("(func %s (", decl->name);
-                for (size_t i = 0; i < d.func.num_params; i++) {
+                f = d.func.decl;
+                for (size_t i = 0; i < f->num_args; i++) {
                         // params
                 }
                 printf(") ");
-                print_type(d.func.type);
+                if (f->ret) print_type(f->ret);
+                else printf("void");
                 printf(")");
                 return;
         default:

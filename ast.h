@@ -9,6 +9,7 @@ typedef struct Typespec Typespec;
 
 typedef struct StmtList StmtList;
 typedef struct SwitchCase SwitchCase;
+typedef struct FuncDecl FuncDecl;
 
 
 void *ast_alloc(size_t size)
@@ -522,12 +523,17 @@ struct Decl {
                 } var;
                 
                 struct {
-                        const char **params;
-                        size_t num_params;
-                        Typespec *type;
+                        FuncDecl *decl;
                         StmtList *body;
                 } func;
         };
+};
+
+struct FuncDecl {
+        const char **args;
+        Typespec **types;
+        size_t num_args;
+        Typespec *ret;
 };
 
 
@@ -537,6 +543,15 @@ Decl *new_decl(enum DeclKind kind, const char *name)
         d->kind = kind;
         d->name = name;
         return d;
+}
+
+FuncDecl *new_func_decl()
+{
+        FuncDecl *f = ast_alloc(sizeof(FuncDecl));
+        f->args = NULL;
+        f->types = NULL;
+        f->num_args = 0;
+        return f;
 }
 
 
@@ -605,18 +620,10 @@ Decl *new_decl_var(const char *name, Typespec *type, Expr *expr)
 }
 
 
-Decl *new_decl_func(
-        const char *name,
-        const char **params,
-        size_t num_params,
-        Typespec *type,
-        StmtList *body
-) {
+Decl *new_decl_func(const char *name, FuncDecl *decl, StmtList *body)
+{
         Decl *d = new_decl(DECL_FUNC, name);
-        d->func.params = params;
-        d->func.num_params = num_params;
-        assert(type->kind = TYPESPEC_FUNCTION);
-        d->func.type = type;
+        d->func.decl = decl;
         d->func.body = body;
         return d;
 }
