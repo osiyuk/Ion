@@ -27,6 +27,12 @@ Stmt *parse_statement(void);
 StmtList *parse_stmt_list(void);
 SwitchCase *parse_switch_case(void);
 
+struct aggregate;
+Decl *parse_declaration(void);
+Decl *parse_enum_decl(void);
+Decl *parse_func_decl(void);
+struct aggregate parse_aggregate(void);
+
 
 Expr *parse_operand(void)
 {
@@ -547,6 +553,185 @@ SwitchCase *parse_switch_case(void)
                 sc->stmt = new_stmt_block(stmts, buf_len(stmts));
         }
         return sc;
+}
+
+
+struct aggregate {
+        const char **names;
+        Typespec **types;
+};
+
+
+Decl *parse_declaration(void)
+{
+        const char *name;
+        Typespec *type;
+        
+        if (match_keyword(typedef_keyword)) {
+                name = token.name;
+                expect_token(TOKEN_NAME);
+                expect_token(TOKEN_ASSIGN);
+                type = parse_type();
+                return new_decl_typedef(name, type);
+        }
+        if (match_keyword(enum_keyword)) {
+                return parse_enum_decl();
+        }
+        if (match_keyword(struct_keyword)) {
+                struct aggregate a;
+                size_t num_types;
+                
+                name = token.name;
+                expect_token(TOKEN_NAME);
+                a = parse_aggregate();
+                num_types = buf_len(a.types);
+                return new_decl_struct(name, a.names, a.types, num_types);
+        }
+        if (match_keyword(union_keyword)) {
+                struct aggregate a;
+                size_t num_types;
+                
+                name = token.name;
+                expect_token(TOKEN_NAME);
+                a = parse_aggregate();
+                num_types = buf_len(a.types);
+                return new_decl_union(name, a.names, a.types, num_types);
+        }
+        if (match_keyword(const_keyword)) {
+                Expr *expr;
+                
+                name = token.name;
+                expect_token(TOKEN_NAME);
+                expect_token(TOKEN_ASSIGN);
+                expr = parse_expr();
+                return new_decl_const(name, NULL, expr);
+        }
+        if (match_keyword(var_keyword)) {
+                Expr *expr;
+                
+                name = token.name;
+                expect_token(TOKEN_NAME);
+                if (match_token(TOKEN_ASSIGN)) {
+                        expr = parse_expr();
+                        return new_decl_var(name, NULL, expr);
+                }
+                expect_token(TOKEN_COLON);
+                type = parse_type();
+                if (!match_token(TOKEN_ASSIGN)) {
+                        return new_decl_var(name, type, NULL);
+                }
+                expr = parse_expr();
+                return new_decl_var(name, type, expr);
+        }
+        return parse_func_decl();
+}
+
+
+Decl *parse_enum_decl(void)
+{
+        const char *name;
+        const char **names = NULL;
+        Expr **exprs = NULL;
+        
+        name = token.name;
+        expect_token(TOKEN_NAME);
+        expect_token(TOKEN_L_BRACKET);
+        while (!is_token(TOKEN_R_BRACKET)) {
+                if (!is_token(TOKEN_NAME)) {
+                        syntax_error("Expect enum constant name");
+                        return NULL;
+                }
+                buf_push(names, token.name);
+                match_token(TOKEN_NAME);
+                if (match_token(TOKEN_ASSIGN)) {
+                        buf_push(exprs, parse_expr());
+                } else {
+                        buf_push(exprs, NULL);
+                }
+                match_token(TOKEN_COMMA);
+        }
+        assert(buf_len(names) == buf_len(exprs));
+        return new_decl_enum(name, names, exprs, buf_len(exprs));
+}
+
+
+Decl *parse_func_decl(void)
+{
+        const char *name;
+        const char **params = NULL;
+        Typespec **args = NULL;
+        Typespec *ret;
+        Typespec *type;
+        Stmt **stmt = NULL;
+        StmtList *body;
+        size_t num_args;
+        
+        if (!match_keyword(func_keyword)) {
+                syntax_error("Expected declaration got %s", token_info());
+        }
+        name = token.name;
+        expect_token(TOKEN_NAME);
+        expect_token(TOKEN_L_BRACE);
+        while (!is_token(TOKEN_R_BRACE)) {
+                if (!is_token(TOKEN_NAME)) {
+                        syntax_error("Expect function param name");
+                }
+                buf_push(params, token.name);
+                expect_token(TOKEN_NAME);
+                expect_token(TOKEN_COLON);
+                buf_push(args, parse_type());
+                if (!match_token(TOKEN_COMMA))
+                        break;
+        }
+        expect_token(TOKEN_R_BRACE);
+        ret = NULL;
+        if (match_token(TOKEN_COLON)) {
+                ret = parse_type();
+        }
+        if (args) {
+                assert(params && buf_len(params) == buf_len(args));
+                type = new_typespec_function(args, buf_len(args), ret);
+        } else {
+                type = new_typespec_function(NULL, 0, ret);
+        }
+        expect_token(TOKEN_L_BRACKET);
+        while (!is_token(TOKEN_R_BRACKET)) {
+                buf_push(stmt, parse_statement());
+                match_token(TOKEN_SEMICOLON);
+        }
+        body = new_stmt_list();
+        if (stmt) {
+                body->stmt = stmt;
+                body->num_stmt = buf_len(stmt);
+        } else {
+                body->stmt = NULL;
+                body->num_stmt = 0;
+        }
+        expect_token(TOKEN_R_BRACKET);
+        num_args = args ? buf_len(args) : 0;
+        return new_decl_func(name, params, num_args, type, body);
+}
+
+
+struct aggregate parse_aggregate(void)
+{
+        struct aggregate a = {NULL, NULL};
+        
+        expect_token(TOKEN_L_BRACKET);
+        while (!is_token(TOKEN_R_BRACKET)) {
+                if (!is_token(TOKEN_NAME)) {
+                        syntax_error("Expect aggregate field name");
+                }
+                buf_push(a.names, token.name);
+                expect_token(TOKEN_NAME);
+                expect_token(TOKEN_COLON);
+                buf_push(a.types, parse_type());
+                match_token(TOKEN_SEMICOLON);
+        }
+        if (a.names)
+                assert(buf_len(a.names) == buf_len(a.types));
+        expect_token(TOKEN_R_BRACKET);
+        return a;
 }
 
 #endif
