@@ -181,9 +181,9 @@ void parser_declaration_tests()
                 "(var i () 0)",
                 "(var j (int))",
                 "(var len (size_t) MAX_EXPRS)",
-                "(func chill_out () void (block nil))",
-                "(func zero_vector () Vector (block (return (call vector 0 0))))",
-                "(func make_rect ((min Vector) (max Vector)) Rect " // 1
+                "(func chill_out (ret void) (block nil))",
+                "(func zero_vector (ret Vector) (block (return (call vector 0 0))))",
+                "(func make_rect (min Vector) (max Vector) (ret Rect) " // 1
                 "(block (return (call rect (- (. max x) (. min x)) " // 2
                 "(- (. max y) (. min y))))))", // 3
         };

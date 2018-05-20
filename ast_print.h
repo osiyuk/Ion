@@ -313,14 +313,18 @@ aggregate:
                 printf(")");
                 return;
         case DECL_FUNC:
-                printf("(func %s (", decl->name);
+                printf("(func %s", decl->name);
                 f = d.func.decl;
                 for (size_t i = 0; i < f->num_args; i++) {
-                        // params
+                        printf(" (%s ", f->args[i]);
+                        print_type(f->types[i]);
+                        printf(")");
                 }
-                printf(") ");
+                printf(" (ret ");
                 if (f->ret) print_type(f->ret);
                 else printf("void");
+                printf(") ");
+                print_stmt(d.func.body);
                 printf(")");
                 return;
         default:
