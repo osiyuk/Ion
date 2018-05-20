@@ -170,7 +170,7 @@ void parser_declaration_tests()
                 "func chill_out() {}",
                 "func zero_vector(): Vector { return vector(0, 0) }",
                 "func make_rect(min: Vector, max: Vector): Rect {" // 1
-                "{ return rect(max.x - min.x, max.y - min.y) }" // 2
+                "return rect(max.x - min.x, max.y - min.y) }", // 2
         };
         const char *ast[] = {
                 "(typedef ptr (ptr void))",
@@ -182,6 +182,10 @@ void parser_declaration_tests()
                 "(var j (int))",
                 "(var len (size_t) MAX_EXPRS)",
                 "(func chill_out () void (block nil))",
+                "(func zero_vector () Vector (block (return (call vector 0 0))))",
+                "(func make_rect ((min Vector) (max Vector)) Rect " // 1
+                "(block (return (call rect (- (. max x) (. min x)) " // 2
+                "(- (. max y) (. min y))))))", // 3
         };
         size_t len = sizeof(ast) / sizeof(char *);
         

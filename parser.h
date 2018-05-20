@@ -85,6 +85,9 @@ sizeof_type:
                 return new_expr_cast(t, e);
         }
         
+        if (is_token(TOKEN_EOF)) {
+                fatal_error("Unexpected end of file");
+        }
         syntax_error(unexpected_token, token_info(), "operand");
         return NULL;
 }
