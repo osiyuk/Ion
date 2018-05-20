@@ -524,7 +524,7 @@ struct Decl {
                 
                 struct {
                         FuncDecl *decl;
-                        StmtList *body;
+                        Stmt *body;
                 } func;
         };
 };
@@ -550,7 +550,6 @@ FuncDecl *new_func_decl()
         FuncDecl *f = ast_alloc(sizeof(FuncDecl));
         f->args = NULL;
         f->types = NULL;
-        f->num_args = 0;
         return f;
 }
 
@@ -620,10 +619,11 @@ Decl *new_decl_var(const char *name, Typespec *type, Expr *expr)
 }
 
 
-Decl *new_decl_func(const char *name, FuncDecl *decl, StmtList *body)
+Decl *new_decl_func(const char *name, FuncDecl *decl, Stmt *body)
 {
         Decl *d = new_decl(DECL_FUNC, name);
         d->func.decl = decl;
+        assert(body->kind == STMT_BLOCK);
         d->func.body = body;
         return d;
 }

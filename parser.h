@@ -664,7 +664,7 @@ Decl *parse_func_decl(void)
         const char *name;
         FuncDecl *decl = NULL;
         Stmt **stmt = NULL;
-        StmtList *body;
+        Stmt *body;
         
         decl = new_func_decl();
         
@@ -683,10 +683,8 @@ Decl *parse_func_decl(void)
                         break;
         }
         expect_token(TOKEN_R_PAREN);
-        if (decl->args) {
-                decl->num_args = buf_len(decl->args);
-                assert(buf_len(decl->types) == decl->num_args);
-        }
+        decl->num_args = buf__len(decl->args);
+        assert(buf__len(decl->types) == decl->num_args);
         
         decl->ret = NULL;
         if (match_token(TOKEN_COLON)) {
@@ -698,14 +696,7 @@ Decl *parse_func_decl(void)
                 match_token(TOKEN_SEMICOLON);
         }
         expect_token(TOKEN_R_BRACKET);
-        body = new_stmt_list();
-        if (stmt) {
-                body->stmt = stmt;
-                body->num_stmt = buf_len(stmt);
-        } else {
-                body->stmt = NULL;
-                body->num_stmt = 0;
-        }
+        body = new_stmt_block(stmt, buf__len(stmt));
         return new_decl_func(name, decl, body);
 }
 
