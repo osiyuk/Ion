@@ -29,8 +29,8 @@ SwitchCase *parse_switch_case(void);
 
 struct aggregate;
 Decl *parse_declaration(void);
-Decl *parse_enum_decl(void);
-Decl *parse_func_decl(void);
+Decl *parse_enum_decl(const char *name);
+Decl *parse_func_decl(const char *name);
 struct aggregate parse_aggregate(void);
 
 
@@ -578,7 +578,10 @@ Decl *parse_declaration(void)
                 return new_decl_typedef(name, type);
         }
         if (match_keyword(enum_keyword)) {
-                return parse_enum_decl();
+                name = token.name;
+                expect_token(TOKEN_NAME);
+                expect_token(TOKEN_L_BRACKET);
+                return parse_enum_decl(name);
         }
         if (match_keyword(struct_keyword)) {
                 struct aggregate a;
@@ -627,22 +630,21 @@ Decl *parse_declaration(void)
                 return new_decl_var(name, type, expr);
         }
         if (match_keyword(func_keyword)) {
-                return parse_func_decl();
+                name = token.name;
+                expect_token(TOKEN_NAME);
+                expect_token(TOKEN_L_PAREN);
+                return parse_func_decl(name);
         }
         syntax_error("Expected declaration got %s", token_info());
         return NULL;
 }
 
 
-Decl *parse_enum_decl(void)
+Decl *parse_enum_decl(const char *name)
 {
-        const char *name;
         const char **names = NULL;
         Expr **exprs = NULL;
         
-        name = token.name;
-        expect_token(TOKEN_NAME);
-        expect_token(TOKEN_L_BRACKET);
         while (!is_token(TOKEN_R_BRACKET)) {
                 if (!is_token(TOKEN_NAME)) {
                         syntax_error("Expect enum constant name");
@@ -662,18 +664,14 @@ Decl *parse_enum_decl(void)
 }
 
 
-Decl *parse_func_decl(void)
+Decl *parse_func_decl(const char *name)
 {
-        const char *name;
         FuncDecl *decl = NULL;
         Stmt **stmt = NULL;
         Stmt *body;
         
         decl = new_func_decl();
         
-        name = token.name;
-        expect_token(TOKEN_NAME);
-        expect_token(TOKEN_L_PAREN);
         while (!is_token(TOKEN_R_PAREN)) {
                 if (!is_token(TOKEN_NAME)) {
                         syntax_error("Expect function param name");
@@ -686,6 +684,7 @@ Decl *parse_func_decl(void)
                         break;
         }
         expect_token(TOKEN_R_PAREN);
+        
         decl->num_args = buf__len(decl->args);
         assert(buf__len(decl->types) == decl->num_args);
         
@@ -699,6 +698,7 @@ Decl *parse_func_decl(void)
                 match_token(TOKEN_SEMICOLON);
         }
         expect_token(TOKEN_R_BRACKET);
+        
         body = new_stmt_block(stmt, buf__len(stmt));
         return new_decl_func(name, decl, body);
 }
@@ -719,9 +719,10 @@ struct aggregate parse_aggregate(void)
                 buf_push(a.types, parse_type());
                 match_token(TOKEN_SEMICOLON);
         }
-        if (a.names)
-                assert(buf_len(a.names) == buf_len(a.types));
         expect_token(TOKEN_R_BRACKET);
+        if (a.names) {
+                assert(buf_len(a.names) == buf_len(a.types));
+        }
         return a;
 }
 

@@ -135,6 +135,12 @@ const char *token_kind_repr[] = {
         [TOKEN_SUB_ASSIGN]      = "-=",
         [TOKEN_XOR_ASSIGN]      = "^=",
         [TOKEN_OR_ASSIGN]       = "|=",
+        
+        [TOKEN_KEYWORD] = "KEYWORD",
+        [TOKEN_NAME]    = "NAME",
+        [TOKEN_INT]     = "INT",
+        [TOKEN_FLOAT]   = "FLOAT",
+        [TOKEN_STR]     = "STR",
 };
 
 
