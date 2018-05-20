@@ -33,7 +33,7 @@ void parser_expression_tests()
                 "a * b - c << 1 & 3 ^ 4 | 5",
                 "a || b && c == d && e < f | b ^ c & d >> 3 + 7 % 6",
                 "(a & b == 0)",
-                "(a == b || c == d)",
+                "(a == b && c == d)",
                 "max.x - min.x",
                 "n * fact_rec(n - 1)",
         };
@@ -48,7 +48,7 @@ void parser_expression_tests()
                 "(| (^ (& (<< (- (* a b) c) 1) 3) 4) 5)",
                 "(|| a (&& b (&& (== c d) (< e (| f (^ b (& c (>> d (+ 3 (% 7 6))))))))))",
                 "(== (& a b) 0)",
-                "(|| (== a b) (== c d))",
+                "(&& (== a b) (== c d))",
                 "(- (. max x) (. min x))",
                 "(* n (call fact_rec (- n 1)))",
         };
@@ -105,6 +105,9 @@ void parser_typespec_tests()
 void parser_statement_tests()
 {
         const char *statements[] = {
+                "{}",
+                "{ t := a; a = b; b = t }",
+                "a = b = c = x",
                 "break",
                 "continue",
                 "return 13",
@@ -121,11 +124,11 @@ void parser_statement_tests()
                 "switch (token.kind) { case NONE: break; " // 1
                 "case TOK: printf(token.name); break; " // 2
                 "default: printf(\"error\") }", // 3
-                "{}",
-                "{ t := a; a = b; b = t }",
-                "a = b = c = x",
         };
         const char *ast[] = {
+                "(block nil)",
+                "(block (:= t a) (= a b) (= b t))",
+                "(= a (= b (= c x)))",
                 "(break)",
                 "(continue)",
                 "(return 13)",
@@ -142,15 +145,30 @@ void parser_statement_tests()
                 "(switch (. token kind) (case NONE (break)) " // 1
                 "(case TOK (block (call printf (. token name)) " // 2
                 "(break))) (default (call printf \"error\")))", // 3
-                "(block nil)",
-                "(block (:= t a) (= a b) (= b t))",
-                "(= a (= b (= c x)))",
         };
         size_t len = sizeof(ast) / sizeof(char *);
         
         for (size_t i = 0; i < len; i++) {
                 init_stream(statements[i]);
                 print_stmt(parse_statement());
+                test_print_buf(ast[i]);
+        }
+}
+
+
+void parser_declaration_tests()
+{
+        const char *declarations[] = {
+                "typedef ptr = void *",
+        };
+        const char *ast[] = {
+                "(typedef ptr (ptr void))",
+        };
+        size_t len = sizeof(ast) / sizeof(char *);
+        
+        for (size_t i = 0; i < len; i++) {
+                init_stream(declarations[i]);
+                print_decl(parse_declaration());
                 test_print_buf(ast[i]);
         }
 }
@@ -166,6 +184,7 @@ void parser_test()
         parser_expression_tests();
         parser_typespec_tests();
         parser_statement_tests();
+        parser_declaration_tests();
         
         use_print_buf = NO;
 }
