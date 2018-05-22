@@ -2,30 +2,30 @@
 #define STRING_INTERNING
 
 
-struct row_t {
+struct _string {
         size_t len;
         const char *str;
 };
 
-static struct row_t *table = NULL;
+static struct _string *table = NULL;
 
 
 const char *str_intern_slice(const char *str, size_t len)
 {
-        struct row_t *row;
+        struct _string *s;
         
         if (table == NULL)
                 goto push;
         
         for (int i = 0; i < buf_len(table); i++) {
-                row = table + i;
-                if (row->len == len && strncmp(row->str, str, len) == 0)
-                        return row->str;
+                s = table + i;
+                if (s->len == len && strncmp(s->str, str, len) == 0)
+                        return s->str;
         }
         
 push:
         str = strndup(str, len);
-        buf_push(table, ((struct row_t) {len, str}));
+        buf_push(table, ((struct _string) {len, str}));
         return str;
 }
 
