@@ -39,6 +39,8 @@ Sym local_symbols[MAX_LOCAL_SYMBOLS];
 Sym *local_sym_stack_top = local_symbols;
 #define PUSH(symbol) *local_sym_stack_top++ = symbol
 #define STACK_SIZE() (local_sym_stack_top - local_symbols)
+#define STACK_BOUNDARY() local_symbols + MAX_LOCAL_SYMBOLS
+#define STACK_OVERFLOW() local_sym_stack_top == STACK_BOUNDARY()
 
 
 void *sym_alloc(int size)
@@ -162,7 +164,7 @@ void sym_push(const char *name, Type *type)
 {
         Sym symbol;
         
-        if (local_sym_stack_top == local_symbols + MAX_LOCAL_SYMBOLS) {
+        if (STACK_OVERFLOW()) {
                 fatal_error("Local symbols stack overflow");
         }
         symbol.kind = SYM_VAR;
@@ -190,6 +192,8 @@ Sym *sym_get(const char *name)
         return NULL;
 }
 
+#undef STACK_OVERFLOW
+#undef STACK_BOUNDARY
 #undef STACK_SIZE
 #undef PUSH
 #endif
