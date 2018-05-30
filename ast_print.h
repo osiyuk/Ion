@@ -332,6 +332,15 @@ aggregate:
         }
 }
 
+
+void print_ast(Decl **ast, size_t len)
+{
+        for (size_t i = 0; i < len; i++) {
+                print_decl(ast[i]);
+                printf("\n");
+        }
+}
+
 #undef printf
 #endif
 

@@ -33,6 +33,8 @@ Decl *parse_enum_decl(const char *name);
 Decl *parse_func_decl(const char *name);
 struct aggregate parse_aggregate(void);
 
+Decl **recursive_descent_parser(void);
+
 
 Expr *parse_operand(void)
 {
@@ -724,6 +726,19 @@ struct aggregate parse_aggregate(void)
                 assert(buf_len(a.names) == buf_len(a.types));
         }
         return a;
+}
+
+
+Decl **recursive_descent_parser(void)
+{
+        Decl *decl, **ast = NULL;
+
+        while (!is_token(TOKEN_EOF)) {
+                decl = parse_declaration();
+                if (decl == NULL) break;
+                buf_push(ast, decl);
+        }
+        return ast;
 }
 
 #endif
