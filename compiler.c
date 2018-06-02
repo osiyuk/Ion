@@ -5,6 +5,7 @@
 
 void regression_tests(void)
 {
+        filename = "<anonymous>";
         buf_test();
         str_test();
         lex_test();
@@ -38,8 +39,6 @@ int dump_ast(int argc, char **argv)
         Decl **ast = NULL;
         const char *name, *content;
 
-        regression_tests();
-
         if (argc < 2)
                 name = "example.ion";
         else    name = argv[1];
@@ -48,7 +47,7 @@ int dump_ast(int argc, char **argv)
         if (content == NULL)
                 return 1;
 
-        init_stream(content);
+        init_lex(name, content);
         ast = recursive_descent_parser();
 
         print_ast(ast, buf_len(ast));

@@ -17,6 +17,15 @@ const char *stream;
 #define init_stream(s) stream = s; next_token()
 
 
+void init_lex(const char *name, const char *content)
+{
+        filename = name;
+        line_number = 0;
+        stream = content;
+        next_token();
+}
+
+
 uint8_t char_to_digit[] = {
         ['0'] = 0,
         ['1'] = 1,
@@ -182,10 +191,14 @@ repeat:
         case 0:
                 token.kind = TOKEN_EOF;
                 return;
+        case '\n':
+                line_number++;
         case ' ':
-        case 10:
-                while (isspace(*stream))
+                while (isspace(*stream)) {
+                        if (*stream == '\n')
+                                line_number++;
                         stream++;
+                }
                 goto repeat;
         case '1'...'9':
                 base = 10;
