@@ -661,6 +661,7 @@ Decl *parse_enum_decl(const char *name)
                 }
                 match_token(TOKEN_COMMA);
         }
+        expect_token(TOKEN_R_BRACKET);
         assert(buf_len(names) == buf_len(exprs));
         return new_decl_enum(name, names, exprs, buf_len(exprs));
 }
@@ -714,9 +715,14 @@ struct aggregate parse_aggregate(void)
         while (!is_token(TOKEN_R_BRACKET)) {
                 if (!is_token(TOKEN_NAME)) {
                         syntax_error("Expect aggregate field name");
+                        return a;
                 }
                 buf_push(a.names, token.name);
                 expect_token(TOKEN_NAME);
+                if (is_token(TOKEN_COMMA)) {
+                        syntax_error("multiple fields of single type should be declared separately");
+                        return a;
+                }
                 expect_token(TOKEN_COLON);
                 buf_push(a.types, parse_type());
                 match_token(TOKEN_SEMICOLON);
