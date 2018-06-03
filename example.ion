@@ -8,7 +8,8 @@ enum ExprKind {
 
 struct Expr {
         kind: ExprKind
-        left, right: Expr*
+        left: Expr*
+        right: Expr*
 }
 
 var max_exprs = 1024
@@ -32,15 +33,17 @@ func fact_iter(n: int): int {
 }
 
 struct Vector {
-        x, y: float
+        x: float
+        y: float
 }
 
 struct Rect {
-        pos, size: Vector
+        pos: Vector
+        size: Vector
 }
 
 
-func make_rect(min, max: Vector): Rect {
+func make_rect(min: Vector, max: Vector): Rect {
         return Rect{ {min.x, min.y}, {max.x - min.x, max.y - min.y} }
 }
 
