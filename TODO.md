@@ -15,4 +15,6 @@ Basic pieces of compiler
 - Support bitfields?
 
 What to do next?
-- Watch bitwise videos, until codegen
+- Implement simple Wirth-style error recovering strategy
+- Introduce brand new parser
+- Watch bitwise day 14: Type revisited
