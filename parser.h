@@ -17,10 +17,10 @@ Expr *parse_ternary(void);
 Expr *parse_expr(void);
 
 char is_type_modifier();
-Typespec **parse_type_list(void);
+Typespec **parse_typespec_list(void);
 Typespec *parse_basetype(void);
-Typespec *parse_type_modifier(Typespec *base);
-Typespec *parse_type(void);
+Typespec *parse_typespec_modifier(Typespec *base);
+Typespec *parse_typespec(void);
 
 char is_assign_op();
 Stmt *parse_statement(void);
@@ -75,13 +75,13 @@ Expr *parse_operand(void)
                 expect_token(TOKEN_R_PAREN);
                 return new_expr_sizeof(e);
 sizeof_type:
-                t = parse_type();
+                t = parse_typespec();
                 expect_token(TOKEN_R_PAREN);
                 return new_expr_sizeof_type(t);
         }
         if (match_keyword(cast_keyword)) {
                 expect_token(TOKEN_L_PAREN);
-                t = parse_type();
+                t = parse_typespec();
                 expect_token(TOKEN_R_PAREN);
                 e = parse_expr();
                 return new_expr_cast(t, e);
@@ -309,7 +309,7 @@ char is_type_modifier()
 }
 
 
-Typespec **parse_type_list(void)
+Typespec **parse_typespec_list(void)
 {
         Typespec **list = NULL;
         buf_init(list);
@@ -318,7 +318,7 @@ Typespec **parse_type_list(void)
                 return list;
         }
         do {
-                buf_push(list, parse_type());
+                buf_push(list, parse_typespec());
         } while (match_token(TOKEN_COMMA));
         
         return list;
@@ -331,7 +331,7 @@ Typespec *parse_basetype(void)
         Typespec **args;
         
         if (match_token(TOKEN_L_PAREN)) {
-                t = parse_type();
+                t = parse_typespec();
                 expect_token(TOKEN_R_PAREN);
                 return t;
         }
@@ -342,11 +342,11 @@ Typespec *parse_basetype(void)
         }
         if (match_keyword(func_keyword)) {
                 expect_token(TOKEN_L_PAREN);
-                args = parse_type_list();
+                args = parse_typespec_list();
                 expect_token(TOKEN_R_PAREN);
                 t = NULL;
                 if (match_token(TOKEN_COLON)) {
-                        t = parse_type();
+                        t = parse_typespec();
                 }
                 return new_typespec_function(args, buf_len(args), t);
         }
@@ -356,7 +356,7 @@ Typespec *parse_basetype(void)
 }
 
 
-Typespec *parse_type_modifier(Typespec *base)
+Typespec *parse_typespec_modifier(Typespec *base)
 {
         if (match_keyword(const_keyword)) {
                 return new_typespec_const(base);
@@ -378,12 +378,12 @@ Typespec *parse_type_modifier(Typespec *base)
 }
 
 
-Typespec *parse_type(void)
+Typespec *parse_typespec(void)
 {
         Typespec *t = parse_basetype();
         
         while (is_type_modifier()) {
-                t = parse_type_modifier(t);
+                t = parse_typespec_modifier(t);
         }
         return t;
 }
@@ -576,7 +576,7 @@ Decl *parse_declaration(void)
                 name = token.name;
                 expect_token(TOKEN_NAME);
                 expect_token(TOKEN_ASSIGN);
-                type = parse_type();
+                type = parse_typespec();
                 return new_decl_typedef(name, type);
         }
         if (match_keyword(enum_keyword)) {
@@ -624,7 +624,7 @@ Decl *parse_declaration(void)
                         return new_decl_var(name, NULL, expr);
                 }
                 expect_token(TOKEN_COLON);
-                type = parse_type();
+                type = parse_typespec();
                 if (!match_token(TOKEN_ASSIGN)) {
                         return new_decl_var(name, type, NULL);
                 }
@@ -685,7 +685,7 @@ Decl *parse_func_decl(const char *name)
                         syntax_error("multiple args of single type should be declared separately");
                 }
                 expect_token(TOKEN_COLON);
-                buf_push(decl->types, parse_type());
+                buf_push(decl->types, parse_typespec());
                 if (!match_token(TOKEN_COMMA))
                         break;
         }
@@ -696,7 +696,7 @@ Decl *parse_func_decl(const char *name)
         
         decl->ret = NULL;
         if (match_token(TOKEN_COLON)) {
-                decl->ret = parse_type();
+                decl->ret = parse_typespec();
         }
         expect_token(TOKEN_L_BRACKET);
         while (!is_token(TOKEN_R_BRACKET)) {
@@ -727,7 +727,7 @@ struct aggregate parse_aggregate(void)
                         return a;
                 }
                 expect_token(TOKEN_COLON);
-                buf_push(a.types, parse_type());
+                buf_push(a.types, parse_typespec());
                 match_token(TOKEN_SEMICOLON);
         }
         expect_token(TOKEN_R_BRACKET);

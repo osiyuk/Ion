@@ -96,7 +96,7 @@ void parser_typespec_tests()
         
         for (size_t i = 0; i < len; i++) {
                 init_stream(types[i]);
-                print_type(parse_type());
+                print_type(parse_typespec());
                 test_print_buf(ast[i]);
         }
 }
