@@ -681,6 +681,9 @@ Decl *parse_func_decl(const char *name)
                 }
                 buf_push(decl->args, token.name);
                 expect_token(TOKEN_NAME);
+                if (is_token(TOKEN_COMMA)) {
+                        syntax_error("multiple args of single type should be declared separately");
+                }
                 expect_token(TOKEN_COLON);
                 buf_push(decl->types, parse_type());
                 if (!match_token(TOKEN_COMMA))
