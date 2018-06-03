@@ -87,7 +87,7 @@ void print_expr(Expr *expr)
 }
 
 
-void print_type(Typespec *type)
+void print_typespec(Typespec *type)
 {
         const Typespec t = *type;
         
@@ -97,17 +97,17 @@ void print_type(Typespec *type)
                 return;
         case TYPESPEC_CONST:
                 printf("(const ");
-                print_type(type->base);
+                print_typespec(type->base);
                 printf(")");
                 return;
         case TYPESPEC_PTR:
                 printf("(ptr ");
-                print_type(type->base);
+                print_typespec(type->base);
                 printf(")");
                 return;
         case TYPESPEC_ARRAY:
                 printf("(array ");
-                print_type(t.array.base);
+                print_typespec(t.array.base);
                 printf(" ");
                 print_expr(t.array.length);
                 printf(")");
@@ -116,10 +116,10 @@ void print_type(Typespec *type)
                 printf("(func (");
                 for (size_t i = 0; i < t.func.num_args; i++) {
                         if (i) printf(", ");
-                        print_type(t.func.args[i]);
+                        print_typespec(t.func.args[i]);
                 }
                 printf(") ");
-                if (t.func.ret) print_type(t.func.ret);
+                if (t.func.ret) print_typespec(t.func.ret);
                 else printf("void");
                 printf(")");
                 return;
@@ -260,7 +260,7 @@ void print_decl(Decl *decl)
         switch (decl->kind) {
         case DECL_TYPEDEF:
                 printf("(typedef %s ", decl->name);
-                print_type(d.typedef_decl.type);
+                print_typespec(d.typedef_decl.type);
                 printf(")");
                 return;
         case DECL_ENUM:
@@ -292,7 +292,7 @@ aggregate:
                         
                         if (i) printf(" ");
                         printf("(%s ", name);
-                        print_type(type);
+                        print_typespec(type);
                         printf(")");
                 }
                 printf(")");
@@ -304,7 +304,7 @@ aggregate:
                 return;
         case DECL_VAR:
                 printf("(var %s (", decl->name);
-                if (d.var.type) print_type(d.var.type);
+                if (d.var.type) print_typespec(d.var.type);
                 printf(")");
                 if (d.var.expr) {
                         printf(" ");
@@ -317,11 +317,11 @@ aggregate:
                 f = d.func.decl;
                 for (size_t i = 0; i < f->num_args; i++) {
                         printf(" (%s ", f->args[i]);
-                        print_type(f->types[i]);
+                        print_typespec(f->types[i]);
                         printf(")");
                 }
                 printf(" (ret ");
-                if (f->ret) print_type(f->ret);
+                if (f->ret) print_typespec(f->ret);
                 else printf("void");
                 printf(") ");
                 print_stmt(d.func.body);
