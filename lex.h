@@ -20,7 +20,7 @@ const char *stream;
 void init_lex(const char *name, const char *content)
 {
         filename = name;
-        line_number = 0;
+        line_number = 1;
         stream = content;
         next_token();
 }
@@ -194,11 +194,7 @@ repeat:
         case '\n':
                 line_number++;
         case ' ':
-                while (isspace(*stream)) {
-                        if (*stream == '\n')
-                                line_number++;
-                        stream++;
-                }
+                stream++;
                 goto repeat;
         case '1'...'9':
                 base = 10;
