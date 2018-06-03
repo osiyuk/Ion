@@ -90,7 +90,7 @@ sizeof_type:
         if (is_token(TOKEN_EOF)) {
                 fatal_error("Unexpected end of file");
         }
-        syntax_error(unexpected_token, token_info(), "operand");
+        fatal_error(unexpected_token, token_info(), "operand");
         return NULL;
 }
 
@@ -351,7 +351,7 @@ Typespec *parse_basetype(void)
                 return new_typespec_function(args, buf_len(args), t);
         }
         
-        syntax_error(unexpected_token, token_info(), "type");
+        fatal_error(unexpected_token, token_info(), "type");
         return NULL;
 }
 
