@@ -13,7 +13,6 @@ Expr **parse_expr_list(void);
 Expr *parse_postfix(Expr *);
 Expr *parse_unary(void);
 Expr *parse_binary(char q);
-Expr *parse_ternary(void);
 Expr *parse_expr(void);
 
 char is_type_modifier();
@@ -278,34 +277,21 @@ Expr *parse_binary(char q)
 }
 
 
-Expr *parse_ternary(void)
+Expr *parse_expr(void)
 {
         Expr *e = parse_binary(HIGHEST_PRECEDENCE);
-        
-        if (match_token(TOKEN_QUESTION)) {
-                Expr *then = parse_binary(HIGHEST_PRECEDENCE);
-                expect_token(TOKEN_COLON);
-                e = new_expr_ternary(e, then, parse_ternary());
-        }
-        return e;
-}
 
-
-Expr *parse_assign(void)
-{
-        Expr *e = parse_expr();
         if (is_assign_op()) {
                 TokenKind op = token.kind;
                 next_token();
-                e = new_expr_binary(op, e, parse_assign());
+                e = new_expr_binary(op, e, parse_expr());
+        }
+        if (match_token(TOKEN_QUESTION)) {
+                Expr *then = parse_binary(HIGHEST_PRECEDENCE);
+                expect_token(TOKEN_COLON);
+                e = new_expr_ternary(e, then, parse_expr());
         }
         return e;
-}
-
-
-Expr *parse_expr(void)
-{
-        return parse_ternary();
 }
 
 
@@ -510,7 +496,7 @@ Stmt *parse_statement(void)
                 return new_stmt_block(NULL, 0);
         }
         
-        e = parse_assign();
+        e = parse_expr();
         return new_stmt_expr(e);
 }
 
