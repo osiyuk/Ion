@@ -366,7 +366,7 @@ struct Stmt {
                 struct {
                         TokenKind op;
                         Expr *lvalue;
-                        Stmt *rvalue;
+                        Expr *rvalue;
                 } assign;
         };
 };
@@ -477,7 +477,7 @@ Stmt *new_stmt_expr(Expr *expr)
 }
 
 
-Stmt *new_stmt_assign(TokenKind op, Expr *lvalue, Stmt *rvalue)
+Stmt *new_stmt_assign(TokenKind op, Expr *lvalue, Expr *rvalue)
 {
         Stmt *s = new_stmt(STMT_ASSIGN);
         s->assign.op = op;

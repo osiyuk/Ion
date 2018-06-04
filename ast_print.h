@@ -243,7 +243,7 @@ void print_stmt(Stmt *stmt)
                 printf("(%s ", token_kind(s.assign.op));
                 print_expr(s.assign.lvalue);
                 printf(" ");
-                print_stmt(s.assign.rvalue);
+                print_expr(s.assign.rvalue);
                 printf(")");
                 return;
         default:

@@ -291,6 +291,18 @@ Expr *parse_ternary(void)
 }
 
 
+Expr *parse_assign(void)
+{
+        Expr *e = parse_expr();
+        if (is_assign_op()) {
+                TokenKind op = token.kind;
+                next_token();
+                e = new_expr_binary(op, e, parse_assign());
+        }
+        return e;
+}
+
+
 Expr *parse_expr(void)
 {
         return parse_ternary();
@@ -403,7 +415,6 @@ Stmt *parse_statement(void)
 {
         Expr *e;
         Stmt *s;
-        TokenKind op;
         
         if (match_keyword(break_keyword)) {
                 return new_stmt_break();
@@ -499,13 +510,8 @@ Stmt *parse_statement(void)
                 return new_stmt_block(NULL, 0);
         }
         
-        e = parse_expr();
-        if (!is_assign_op()) {
-                return new_stmt_expr(e);
-        }
-        op = token.kind;
-        next_token();
-        return new_stmt_assign(op, e, parse_statement());
+        e = parse_assign();
+        return new_stmt_expr(e);
 }
 
 
