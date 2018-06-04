@@ -10,6 +10,7 @@ typedef struct Typespec Typespec;
 typedef struct StmtList StmtList;
 typedef struct SwitchCase SwitchCase;
 typedef struct FuncDecl FuncDecl;
+typedef struct BoxDecl BoxDecl;
 
 
 void *ast_alloc(size_t size)
@@ -501,22 +502,9 @@ struct Decl {
         enum DeclKind kind;
         const char *name;
         union {
-                struct {
-                        Typespec *type;
-                } typedef_decl;
-                
-                struct {
-                        const char **names;
-                        Expr **init_exprs;
-                        size_t num_names;
-                } enum_decl;
-                
-                struct {
-                        const char **names;
-                        Typespec **types;
-                        size_t num_names;
-                } aggregate;
-                
+                Typespec *typespec;
+                BoxDecl *box;
+
                 struct {
                         Typespec *type;
                         Expr *expr;
@@ -527,6 +515,15 @@ struct Decl {
                         Stmt *body;
                 } func;
         };
+};
+
+struct BoxDecl {
+        const char **names;
+        union {
+                Typespec **types;
+                Expr **exprs;
+        };
+        size_t num_names;
 };
 
 struct FuncDecl {
@@ -545,6 +542,14 @@ Decl *new_decl(enum DeclKind kind, const char *name)
         return d;
 }
 
+BoxDecl *new_box_decl()
+{
+        BoxDecl *b = ast_alloc(sizeof(BoxDecl));
+        b->names = NULL;
+        b->types = NULL;
+        return b;
+}
+
 FuncDecl *new_func_decl()
 {
         FuncDecl *f = ast_alloc(sizeof(FuncDecl));
@@ -554,52 +559,24 @@ FuncDecl *new_func_decl()
 }
 
 
-Decl *new_decl_typedef(const char *name, Typespec *type)
+Decl *new_decl_typedef(const char *name, Typespec *typespec)
 {
         Decl *d = new_decl(DECL_TYPEDEF, name);
-        d->typedef_decl.type = type;
+        d->typespec = typespec;
         return d;
 }
 
 
-Decl *new_decl_enum(
-        const char *name,
-        const char **names,
-        Expr **init_exprs,
-        size_t num_names
-) {
-        Decl *d = new_decl(DECL_ENUM, name);
-        d->enum_decl.names = names;
-        d->enum_decl.init_exprs = init_exprs;
-        d->enum_decl.num_names = num_names;
+Decl *new_decl_box(enum DeclKind kind, const char *name, BoxDecl *box)
+{
+        Decl *d = new_decl(kind, name);
+        d->box = box;
         return d;
 }
 
-
-Decl *new_decl_struct(
-        const char *name,
-        const char **names,
-        Typespec **types,
-        size_t num_names
-) {
-        Decl *d = new_decl(DECL_STRUCT, name);
-        d->aggregate.names = names;
-        d->aggregate.types = types;
-        d->aggregate.num_names = num_names;
-        return d;
-}
-
-
-Decl *new_decl_union(
-        const char *name,
-        const char **names,
-        Typespec **types,
-        size_t num_names
-) {
-        Decl *d = new_decl_struct(name, names, types, num_names);
-        d->kind = DECL_UNION;
-        return d;
-}
+#define new_decl_enum(name, box) new_decl_box(DECL_ENUM, name, box)
+#define new_decl_struct(name, box) new_decl_box(DECL_STRUCT, name, box)
+#define new_decl_union(name, box) new_decl_box(DECL_UNION, name, box)
 
 
 Decl *new_decl_const(const char *name, Typespec *type, Expr *expr)

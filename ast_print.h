@@ -256,18 +256,20 @@ void print_decl(Decl *decl)
 {
         const Decl d = *decl;
         const FuncDecl *f;
+        const BoxDecl *b;
         
         switch (decl->kind) {
         case DECL_TYPEDEF:
                 printf("(typedef %s ", decl->name);
-                print_typespec(d.typedef_decl.type);
+                print_typespec(d.typespec);
                 printf(")");
                 return;
         case DECL_ENUM:
                 printf("(enum %s ", decl->name);
-                for (size_t i = 0; i < d.enum_decl.num_names; i++) {
-                        const char *name = d.enum_decl.names[i];
-                        Expr *init_expr = d.enum_decl.init_exprs[i];
+                b = d.box;
+                for (size_t i = 0; i < b->num_names; i++) {
+                        const char *name = b->names[i];
+                        Expr *init_expr = b->exprs[i];
                         
                         if (i) printf(" ");
                         if (init_expr) {
@@ -286,13 +288,11 @@ void print_decl(Decl *decl)
         case DECL_UNION:
                 printf("(union %s ", decl->name);
 aggregate:
-                for (size_t i = 0; i < d.aggregate.num_names; i++) {
-                        const char *name = d.aggregate.names[i];
-                        Typespec *type = d.aggregate.types[i];
-                        
+                b = d.box;
+                for (size_t i = 0; i < b->num_names; i++) {
                         if (i) printf(" ");
-                        printf("(%s ", name);
-                        print_typespec(type);
+                        printf("(%s ", b->names[i]);
+                        print_typespec(b->types[i]);
                         printf(")");
                 }
                 printf(")");
