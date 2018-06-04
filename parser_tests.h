@@ -22,34 +22,40 @@ void test_print_buf(const char *ast)
 void parser_expression_tests()
 {
         const char *expressions[] = {
+                "\"sex\"",
                 "*p++",
-                "\"sex\"[2]",
-                "x || y || z",
-                "*x - *y",
+                "arr[n]",
+                "object.name",
+                "a = b",
+                "a = b = c",
+                "a = b = c = x",
                 "3 - 2 - 1 - 0",
                 "2 * 3 + 4 * 5",
                 "2 * (3 + 4) * 5",
-                "a * b - c << 1 & 3 ^ 4 | 5",
-                "a || b && c == d && e < f | b ^ c & d >> 3 + 7 % 6",
+                "x || y || z",
                 "(a & b == 0)",
                 "(a == b && c == d)",
-                "max.x - min.x",
                 "n * fact_rec(n - 1)",
+                "a * b - c << 1 & 3 ^ 4 | 5",
+                "a || b && c == d && e < f | b ^ c & d >> 3 + 7 % 6",
         };
         const char *ast[] = {
+                "\"sex\"",
                 "(* (++ p))",
-                "([] \"sex\" 2)",
-                "(|| (|| x y) z)",
-                "(- (* x) (* y))",
+                "([] arr n)",
+                "(. object name)",
+                "(= a b)",
+                "(= a (= b c))",
+                "(= a (= b (= c x)))",
                 "(- (- (- 3 2) 1) 0)",
                 "(+ (* 2 3) (* 4 5))",
                 "(* (* 2 (+ 3 4)) 5)",
-                "(| (^ (& (<< (- (* a b) c) 1) 3) 4) 5)",
-                "(|| a (&& b (&& (== c d) (< e (| f (^ b (& c (>> d (+ 3 (% 7 6))))))))))",
+                "(|| (|| x y) z)",
                 "(== (& a b) 0)",
                 "(&& (== a b) (== c d))",
-                "(- (. max x) (. min x))",
                 "(* n (call fact_rec (- n 1)))",
+                "(| (^ (& (<< (- (* a b) c) 1) 3) 4) 5)",
+                "(|| a (&& b (&& (== c d) (< e (| f (^ b (& c (>> d (+ 3 (% 7 6))))))))))",
         };
         size_t len = sizeof(expressions) / sizeof(char *);
         
@@ -106,9 +112,7 @@ void parser_statement_tests()
         const char *statements[] = {
                 "{}",
                 "{ t := a; a = b; b = t }",
-                "a = b",
-                "a = b = c",
-                "a = b = c = x",
+
                 "break",
                 "continue",
                 "return 13",
@@ -129,9 +133,7 @@ void parser_statement_tests()
         const char *ast[] = {
                 "(block nil)",
                 "(block (:= t a) (= a b) (= b t))",
-                "(= a b)",
-                "(= a (= b c))",
-                "(= a (= b (= c x)))",
+
                 "(break)",
                 "(continue)",
                 "(return 13)",
