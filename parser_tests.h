@@ -8,13 +8,12 @@ enum {
 };
 
 
+const char *err_parser_ast_diff = "parser_error: expected ast\n%s\ngot\n%s\n";
+
 void test_print_buf(const char *ast)
 {
-        if (strcmp(print_buf, ast)) { log_error(
-                "parser: expected ast\n"
-                "%s\n"
-                "got\n"
-                "%s", ast, print_buf);
+        if (strcmp(print_buf, ast)) {
+                error(err_parser_ast_diff, ast, print_buf);
         }
         buf_len(print_buf) = 0;
 }
