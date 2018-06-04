@@ -326,7 +326,6 @@ enum StmtKind {
         STMT_SWITCH,
         STMT_BLOCK,
         STMT_EXPR,
-        STMT_ASSIGN,
 };
 
 struct Stmt {
@@ -362,12 +361,6 @@ struct Stmt {
                         Stmt **stmt;
                         size_t num_stmt;
                 } block;
-                
-                struct {
-                        TokenKind op;
-                        Expr *lvalue;
-                        Expr *rvalue;
-                } assign;
         };
 };
 
@@ -473,16 +466,6 @@ Stmt *new_stmt_expr(Expr *expr)
 {
         Stmt *s = new_stmt(STMT_EXPR);
         s->expr = expr;
-        return s;
-}
-
-
-Stmt *new_stmt_assign(TokenKind op, Expr *lvalue, Expr *rvalue)
-{
-        Stmt *s = new_stmt(STMT_ASSIGN);
-        s->assign.op = op;
-        s->assign.lvalue = lvalue;
-        s->assign.rvalue = rvalue;
         return s;
 }
 

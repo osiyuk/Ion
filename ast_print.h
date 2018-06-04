@@ -239,13 +239,6 @@ void print_stmt(Stmt *stmt)
         case STMT_EXPR:
                 print_expr(stmt->expr);
                 return;
-        case STMT_ASSIGN:
-                printf("(%s ", token_kind(s.assign.op));
-                print_expr(s.assign.lvalue);
-                printf(" ");
-                print_expr(s.assign.rvalue);
-                printf(")");
-                return;
         default:
                 assert(STMT_NONE);
         }
