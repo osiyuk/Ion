@@ -581,8 +581,7 @@ Decl *parse_declaration(void)
         if (    is_token_keyword(struct_keyword) ||
                 is_token_keyword(union_keyword))
         {
-                char is_struct = is_token_keyword(struct_keyword) ?
-                        TRUE : FALSE;
+                char is_struct = is_token_keyword(struct_keyword);
                 next_token();
                 name = token.name;
                 expect_token(TOKEN_NAME);
