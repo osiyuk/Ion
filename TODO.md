@@ -15,7 +15,6 @@ Basic pieces of compiler
 - Support bitfields?
 
 What to do next?
-- AST: Move assign operators from statement to expression level
 - AST: Eliminate StmtList structure for STMT_FOR
 - Implement simple Wirth-style error recovering strategy
 - Introduce brand new parser
