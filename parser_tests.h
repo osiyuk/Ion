@@ -106,6 +106,8 @@ void parser_statement_tests()
         const char *statements[] = {
                 "{}",
                 "{ t := a; a = b; b = t }",
+                "a = b",
+                "a = b = c",
                 "a = b = c = x",
                 "break",
                 "continue",
@@ -127,6 +129,8 @@ void parser_statement_tests()
         const char *ast[] = {
                 "(block nil)",
                 "(block (:= t a) (= a b) (= b t))",
+                "(= a b)",
+                "(= a (= b c))",
                 "(= a (= b (= c x)))",
                 "(break)",
                 "(continue)",
