@@ -16,9 +16,14 @@
 #include "lex.h"
 
 #include "ast.h"
+#ifndef BRAND_NEW_PARSER
 #include "parser.h"
+#else
+#include "parser_new.h"
+#endif
 
 #include "ast_print.h"
 #include "lex_tests.h"
+#ifndef BRAND_NEW_PARSER
 #include "parser_tests.h"
-
+#endif

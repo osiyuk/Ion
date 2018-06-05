@@ -1,3 +1,4 @@
+//#define BRAND_NEW_PARSER
 #include "config.h"
 
 #define MAIN dump_ast
@@ -9,7 +10,9 @@ void regression_tests(void)
         buf_test();
         str_test();
         lex_test();
+#ifndef BRAND_NEW_PARSER
         parser_test();
+#endif
 }
 
 
@@ -48,7 +51,11 @@ int dump_ast(int argc, char **argv)
                 return 1;
 
         init_lex(name, content);
+#ifndef BRAND_NEW_PARSER
         ast = recursive_descent_parser();
+#else
+        recursive_descent_parser(&ast);
+#endif
 
         print_ast(ast, buf_len(ast));
         return 0;
