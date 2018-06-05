@@ -7,7 +7,6 @@ typedef struct Stmt Stmt;
 typedef struct Decl Decl;
 typedef struct Typespec Typespec;
 
-typedef struct StmtList StmtList;
 typedef struct SwitchCase SwitchCase;
 typedef struct FuncDecl FuncDecl;
 typedef struct BoxDecl BoxDecl;
@@ -345,9 +344,9 @@ struct Stmt {
                 } while_stmt;
                 
                 struct {
-                        StmtList *init;
+                        Expr *init;
                         Expr *cond;
-                        StmtList *step;
+                        Expr *step;
                         Stmt *body;
                 } for_stmt;
                 
@@ -364,11 +363,6 @@ struct Stmt {
         };
 };
 
-struct StmtList {
-        Stmt **stmt;
-        size_t num_stmt;
-};
-
 struct SwitchCase {
         Expr *expr;
         Stmt *stmt;
@@ -380,11 +374,6 @@ Stmt *new_stmt(enum StmtKind kind)
         Stmt *s = ast_alloc(sizeof(Stmt));
         s->kind = kind;
         return s;
-}
-
-StmtList *new_stmt_list()
-{
-        return ast_alloc(sizeof(StmtList));
 }
 
 SwitchCase *new_switch_case()
@@ -432,7 +421,7 @@ Stmt *new_stmt_do_while(Stmt *body, Expr *cond)
 }
 
 
-Stmt *new_stmt_for(StmtList *init, Expr *cond, StmtList *step, Stmt *body)
+Stmt *new_stmt_for(Expr *init, Expr *cond, Expr *step, Stmt *body)
 {
         Stmt *s = new_stmt(STMT_FOR);
         s->for_stmt.init = init;

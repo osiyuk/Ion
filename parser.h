@@ -23,7 +23,6 @@ Typespec *parse_typespec(void);
 
 char is_assign_op();
 Stmt *parse_statement(void);
-StmtList *parse_stmt_list(void);
 SwitchCase *parse_switch_case(void);
 
 Decl *parse_declaration(void);
@@ -445,25 +444,25 @@ Stmt *parse_statement(void)
                 return new_stmt_do_while(s, e);
         }
         if (match_keyword(for_keyword)) {
-                StmtList *init, *step;
+                Expr *init, *cond, *step;
                 expect_token(TOKEN_L_PAREN);
                 init = NULL;
                 if (!is_token(TOKEN_SEMICOLON)) {
-                        init = parse_stmt_list();
+                        init = parse_expr();
                 }
                 expect_token(TOKEN_SEMICOLON);
-                e = NULL;
+                cond = NULL;
                 if (!is_token(TOKEN_SEMICOLON)) {
-                        e = parse_expr();
+                        cond = parse_expr();
                 }
                 expect_token(TOKEN_SEMICOLON);
                 step = NULL;
                 if (!is_token(TOKEN_R_PAREN)) {
-                        step = parse_stmt_list();
+                        step = parse_expr();
                 }
                 expect_token(TOKEN_R_PAREN);
                 s = parse_statement();
-                return new_stmt_for(init, e, step, s);
+                return new_stmt_for(init, cond, step, s);
         }
         if (match_keyword(switch_keyword)) {
                 SwitchCase **cases = NULL;
@@ -498,21 +497,6 @@ Stmt *parse_statement(void)
         
         e = parse_expr();
         return new_stmt_expr(e);
-}
-
-
-StmtList *parse_stmt_list(void)
-{
-        StmtList *list = new_stmt_list();
-        Stmt **stmts = NULL;
-        buf_init(stmts);
-        
-        do {
-                buf_push(stmts, parse_statement());
-        } while (match_token(TOKEN_COMMA));
-        
-        *list = (StmtList) { stmts, buf_len(stmts) };
-        return list;
 }
 
 

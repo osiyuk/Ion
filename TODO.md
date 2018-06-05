@@ -15,7 +15,6 @@ Basic pieces of compiler
 - Support bitfields?
 
 What to do next?
-- AST: Eliminate StmtList structure for STMT_FOR
 - Implement simple Wirth-style error recovering strategy
 - Introduce brand new parser
 - Watch bitwise day 14: Type revisited
