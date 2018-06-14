@@ -17,5 +17,4 @@ Basic pieces of compiler
 What to do next?
 - Implement simple Wirth-style error recovering strategy
 - Introduce brand new parser
-- Watch bitwise day 14: Type revisited
 - Watch day 15-17 of [Bitwise](https://bitwise.handmade.network/) (without extras)
