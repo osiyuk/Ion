@@ -1,18 +1,9 @@
 #ifndef ION_LEXING
 #define ION_LEXING
 
-
-void next_token();
-const char *token_info();
-char match_keyword(const char *keyword);
-char is_token_keyword(const char *name);
-char is_token(TokenKind);
-char match_token(TokenKind);
-char expect_token(TokenKind);
-
-
+char const *stream;
 struct Token token;
-const char *stream;
+void next_token();
 
 #define init_stream(s) stream = s; next_token()
 
@@ -318,63 +309,6 @@ _float:
                 syntax_error(unknown_token, c, c);
                 stream++;
         }
-}
-
-
-const char *token_info()
-{
-        if (is_token(TOKEN_KEYWORD) || is_token(TOKEN_NAME)) {
-                return token.name;
-        }
-        return token_kind(token.kind);
-}
-
-
-char match_keyword(const char *name)
-{
-        if (is_token_keyword(name)) {
-                next_token();
-                return 1;
-        }
-        return 0;
-}
-
-
-char is_token_keyword(const char *name)
-{
-        if (is_token(TOKEN_KEYWORD) && token.name == name) {
-                return 1;
-        }
-        return 0;
-}
-
-
-char is_token(TokenKind kind)
-{
-        if (token.kind == kind) {
-                return 1;
-        }
-        return 0;
-}
-
-
-char match_token(TokenKind kind)
-{
-        if (is_token(kind)) {
-                next_token();
-                return 1;
-        }
-        return 0;
-}
-
-
-char expect_token(TokenKind kind)
-{
-        if (match_token(kind)) {
-                return 1;
-        }
-        syntax_error(expected_token, token_kind(kind), token_info());
-        return 0;
 }
 
 #endif

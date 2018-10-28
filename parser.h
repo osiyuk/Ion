@@ -33,6 +33,53 @@ Decl *parse_aggregate(const char *name, char is_struct);
 Decl **recursive_descent_parser(void);
 
 
+char match_token(enum TokenKind kind)
+{
+        if (token.kind == kind) {
+                next_token();
+                return 1;
+        }
+        return 0;
+}
+
+char match_keyword(char const *keyword)
+{
+        if (token.kind == TOKEN_KEYWORD && token.name == keyword) {
+                next_token();
+                return 1;
+        }
+        return 0;
+}
+
+char is_token(enum TokenKind kind)
+{
+        if (token.kind == kind) {
+                return 1;
+        }
+        return 0;
+}
+
+char is_token_keyword(char const *keyword)
+{
+        if (token.kind == TOKEN_KEYWORD && token.name == keyword) {
+                return 1;
+        }
+        return 0;
+}
+
+char expect_token(enum TokenKind kind)
+{
+        if (match_token(kind)) {
+                return 1;
+        }
+        char const *a, *b;
+        a = token_kind(kind);
+        b = token_kind(token.kind);
+        syntax_error(expected_token, a, b);
+        return 0;
+}
+
+
 Expr *parse_operand(void)
 {
         Expr *e;
@@ -87,7 +134,7 @@ sizeof_type:
         if (is_token(TOKEN_EOF)) {
                 fatal_error("Unexpected end of file");
         }
-        fatal_error(unexpected_token, token_info(), "operand");
+        fatal_error(unexpected_token, token_kind(token.kind), "operand");
         return NULL;
 }
 
@@ -347,7 +394,7 @@ Typespec *parse_basetype(void)
                 return new_typespec_function(args, buf_len(args), t);
         }
         
-        fatal_error(unexpected_token, token_info(), "type");
+        fatal_error(unexpected_token, token_kind(token.kind), "type");
         return NULL;
 }
 
@@ -369,7 +416,7 @@ Typespec *parse_typespec_modifier(Typespec *base)
                 return new_typespec_array(base, length);
         }
         
-        syntax_error(unexpected_token, token_info(), "type modifier");
+        syntax_error(unexpected_token, token_kind(token.kind), "type modifier");
         return NULL;
 }
 
@@ -595,7 +642,7 @@ Decl *parse_declaration(void)
                 expect_token(TOKEN_L_PAREN);
                 return parse_func_decl(name);
         }
-        syntax_error("Expected declaration got %s", token_info());
+        syntax_error("Expected declaration got %s", token_kind(token.kind));
         return NULL;
 }
 
